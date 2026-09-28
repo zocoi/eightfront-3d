@@ -14,7 +14,9 @@ class NetHost{
   transport.onclose?.(id=>this.drop(id));
  }
  lobby(){return this.members.map(m=>({slots:m.slots,name:m.name,host:m.host,spec:m.spec}));}
- broadcastLobby(){const l={k:'lobby',players:this.lobby()};this.t.broadcast(l);this.onLobby(this.lobby());}
+ // Push roster names onto live player objects so tags/HUD update mid-game.
+ applyNames(){for(const m of this.members)for(const s of m.slots){const p=this.g.players?.[s];if(p)p.name=m.name||defaultName(s+1);}}
+ broadcastLobby(){const l={k:'lobby',players:this.lobby()};this.t.broadcast(l);this.onLobby(this.lobby());this.applyNames();}
  onMsg(id,msg){
   if(!msg||typeof msg!=='object')return;
   if(msg.k==='hi'&&msg.v===NET_VERSION){
@@ -30,6 +32,8 @@ class NetHost{
    const m=this.guests.get(id);if(!m)return;
    m.lastSeq=msg.seq||0;
    for(const [s,pack] of Object.entries(msg.packs||{}))if(m.slots.includes(+s))this.remote[s]=pack;
+  }else if(msg.k==='name'){
+   const m=this.guests.get(id);if(m){m.name=(msg.name||'').slice(0,12)||null;this.broadcastLobby();}
   }else if(msg.k==='bye')this.drop(id);
  }
  drop(id){
@@ -84,14 +88,15 @@ class NetGuest{
  }
  onMsg(msg){
   if(!msg||typeof msg!=='object')return;
-  if(msg.k==='hello'){this.slots=msg.slots;this.you=msg.you;this.spec=msg.spec;this.lobbyList=msg.lobby||[];this.onLobby(this.lobbyList);}
-  else if(msg.k==='lobby'){this.lobbyList=msg.players;this.onLobby(this.lobbyList);}
+  if(msg.k==='hello'){this.slots=msg.slots;this.you=msg.you;this.spec=msg.spec;this.lobbyList=msg.lobby||[];this.onLobby(this.lobbyList);this.applyNames();}
+  else if(msg.k==='lobby'){this.lobbyList=msg.players;this.onLobby(this.lobbyList);this.applyNames();}
   else if(msg.k==='start')this.onStart?.(msg);
   else if(msg.k==='stage')this.onStage?.(msg);
   else if(msg.k==='snap')this.pushSnap(msg);
   else if(msg.k==='bye'||msg.k==='hostBye'){this.hostGone=true;}
   else if(msg.k==='left'){/* roster refresh arrives via lobby */}
  }
+ applyNames(){for(const m of this.lobbyList)for(const s of m.slots){const p=this.g.players?.[s];if(p)p.name=m.name||defaultName(s+1);}}
  join(name='',local=1){this.t.send('host',{k:'hi',v:NET_VERSION,name,local});}
  // Remote-input path is empty for guests: non-owned slots get {}.
  localIndex(slot){const i=this.slots.indexOf(slot);return i<0?null:i;}

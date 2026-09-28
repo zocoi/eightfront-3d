@@ -10,6 +10,10 @@ const NetUI={
   const panel=this.el('div','panel','',shade);
   this.el('div','kicker','ONLINE',panel);this.el('h2','',t('lobbyTitle'),panel);
   this.el('p','',t('lobbyNote'),panel);
+  const nameRow=this.el('div','panel-row','',panel);
+  this.el('span','settings-note',t('netName'),nameRow);
+  const nameIn=this.el('input','','',nameRow);nameIn.maxLength=12;nameIn.placeholder=defaultName(1);nameIn.style.cssText='width:130px;font:700 13px "Courier New"';
+  try{nameIn.value=localStorage.getItem('ef3-name')||''}catch{}
   const row=this.el('div','panel-row','',panel);
   const hostBtn=this.el('button','secondary',t('netHost'),row);
   const codeIn=this.el('input','','',row);codeIn.placeholder=t('codePlaceholder');codeIn.maxLength=6;codeIn.style.cssText='width:90px;text-transform:uppercase;font:700 15px "Courier New"';
@@ -21,9 +25,10 @@ const NetUI={
   const startBtn=this.el('button','primary',t('netStart'),panel);startBtn.hidden=true;
   const codeOut=this.el('p','','',panel);codeOut.style.cssText='font:700 18px "Courier New";letter-spacing:3px;color:var(--gold)';
   const leaveBtn=this.el('button','quiet',t('netLeave'),panel);
-  // hide dismisses the overlay but keeps the room alive; leave tears it down.
+  // hide dismisses the overlay but keeps the room alive; leave tears it down
+  // (and drops the #CODE deep-link).
   const hide=()=>shade.remove();
-  const leave=()=>{this.closeNet();shade.remove();};
+  const leave=()=>{this.closeNet();shade.remove();try{history.replaceState(null,'',location.pathname+location.search);}catch{}};
   const renderList=players=>{
    list.replaceChildren();
    for(const m of players)for(const s of m.slots){
@@ -32,6 +37,12 @@ const NetUI={
     chip.textContent=`P${s+1} ${m.name||kit.call}${m.host?' ◆':''}${m.spec?' · '+t('netSpectator'):''}`;
    }
   };
+  // Editable callsign: sent on join, live-renames via {k:'name'} after.
+  const rename=()=>{const v=nameIn.value.trim();try{localStorage.setItem('ef3-name',v)}catch{}
+   const n=this.net;if(!n)return;
+   if(n.isHost){n.members[0].name=v||null;n.broadcastLobby();}
+   else n.t.send('host',{k:'name',name:v});};
+  nameIn.oninput=rename;
   const statusEl=document.getElementById('netStatus');
   const setStatus=v=>{if(statusEl){statusEl.hidden=!v;statusEl.textContent=v||'';}};
   const begin=(stage,n,names,opts={})=>{
@@ -45,13 +56,13 @@ const NetUI={
    const tryHost=()=>{
     const code=netCode();
     const tp=openTransport(code,true,{
-     onReady:()=>{codeOut.textContent=code;status.textContent=t('netOpen');},
+     onReady:()=>{codeOut.textContent=code;status.textContent=t('netOpen');try{history.replaceState(null,'','#'+code);}catch{}},
      // Someone else claimed this id on the public cloud — draw a fresh code.
      onError:e=>{tp.close();this.net=null;deps.onNet?.(null);
       if(e?.type==='unavailable-id'&&++attempts<5)tryHost();
       else{status.textContent=t('netError');busy(false);}},
     });
-    const host=new NetHost({game:deps.game,transport:tp,localSlots:p2box.checked?[0,1]:[0],onLobby:renderList});
+    const host=new NetHost({game:deps.game,transport:tp,localSlots:p2box.checked?[0,1]:[0],name:nameIn.value.trim(),onLobby:renderList});
     this.net=host;deps.onNet?.(host);
     renderList(host.lobby());startBtn.hidden=false;
     startBtn.onclick=()=>{const run=host.startRun(0,{difficulty:document.getElementById('difficulty').value,inputMode:deps.game.inputMode});begin(0,run.playerCount,run.players);};
@@ -69,13 +80,15 @@ const NetUI={
      guest.onStage=msg=>{deps.start(msg.stage,{playerCount:msg.n,online:true,difficulty:guest.df||document.getElementById('difficulty').value,inputMode:guest.im||deps.game.inputMode});for(const p of deps.game.players)p.name=msg.players[p.id-1]?.name||defaultName(p.id);};
      // Mid-stage joiners never see 'start' — dismiss the lobby on first snapshot.
      const push=guest.pushSnap.bind(guest);guest.pushSnap=s=>{push(s);hide();};
-     guest.join('',p2box.checked?2:1);
+     guest.join(nameIn.value.trim(),p2box.checked?2:1);
      status.textContent=t('netWaiting');setStatus('ONLINE');
     },
     onError:e=>{status.textContent=e?.type==='peer-unavailable'||e?.type==='timeout'?t('netNoRoom'):t('netError');busy(false);},
    });
   };
   leaveBtn.onclick=leave;
+  // Deep-link support: openLobby({code,autojoin}) pre-fills and joins.
+  if(deps.code){codeIn.value=deps.code;if(deps.autojoin)joinBtn.click();}
   return shade;
  },
  closeNet(){this.net?.close?.();this.net=null;this.deps?.onNet?.(null);},
