@@ -289,6 +289,7 @@ function initApp(){
  $('game').addEventListener('mousedown',e=>{if(e.button===0&&G.mode==='playing'){mouse.fire=true;mouse.pressed=true;mouse.active=true;playerDevices[0]='mouse';mouse.x=e.clientX;mouse.y=e.clientY;AudioFX.init();$('game').focus();}});
  addEventListener('mouseup',()=>mouse.fire=false);$('game').addEventListener('contextmenu',e=>e.preventDefault());
  text('engineName','THREE.JS R179');window.__BOOT_STATUS__={state:'initialized',engine:R.backend.name,embedded:true,firstFrameRendered:false};$('loading').hidden=true;applyLanguage();$('deploy').focus({preventScroll:true});
+ window.__EF3__={get G(){return G},get net(){return net}};
  // #CODE deep-link (e.g. https://host/#JEERZ) — open the online lobby and auto-join.
  const hashCode=location.hash.match(/^#([A-Za-z2-9]{4,6})$/i)?.[1]?.toUpperCase();
  if(hashCode&&typeof NetUI!=='undefined'){$('players').value='3';selection();NetUI.openLobby({start,game:G,onNet:n=>{net=n;if(!net)$('netStatus').hidden=true;},code:hashCode,autojoin:true});}

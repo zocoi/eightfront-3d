@@ -14,9 +14,14 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "serve": "node scripts/serve.mjs"
+    "serve": "node scripts/serve.mjs",
+    "test": "node netcheck.mjs",
+    "test:e2e": "node e2e-2p.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }
