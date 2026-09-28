@@ -212,7 +212,12 @@ function initApp(){
    const c=controls();net.sendInputs(c);net.tick(dt,c);
    if(G.t>1.5){frames.push(raw);if(frames.length>4000)frames.shift();}
   }
-  else if(G.mode==='playing'){acc+=dt;let steps=0;while(acc>=1/120&&steps<18){const c=controls();if(net?.isHost)net.fillInputs(c);G.update(1/120,c);acc-=1/120;steps++;}if(steps===18)acc=0;net?.isHost&&net.postTick(dt);if(G.t>1.5){frames.push(raw);if(frames.length>4000)frames.shift();}}
+  else if(G.mode==='playing'){acc+=dt;let steps=0;const c=controls();let cc=c;
+   while(acc>=1/120&&steps<18){if(net?.isHost)net.fillInputs(cc);G.update(1/120,cc);acc-=1/120;steps++;
+    // Edge inputs only ever reached the first substep before (pressed.clear()),
+    // so strip them for the rest — a repeated swap edge would double-toggle.
+    if(steps===1){const noEdge=a=>({...a,firePressed:false,jumpPressed:false,swap:false,grenade:false});cc=Array.isArray(c)?c.map(noEdge):noEdge(c);}}
+   if(steps===18)acc=0;net?.isHost&&net.postTick(dt);if(G.t>1.5){frames.push(raw);if(frames.length>4000)frames.shift();}}
   else if(G.mode==='menu'){controls();G.t+=Math.min(dt,.05);G.cam=13+(reducedMotion?0:Math.sin(G.t*.11)*.7);}else controls();
   if(!skipDraw)CampaignWorld.draw(G,G.mode==='menu');AudioFX.tick(G.mode==='playing',!!G.boss?.active,G.stageIndex);if(now-uiTime>100){syncUI();uiTime=now;}
   if(window.__BOOT_STATUS__?.state==='initialized'){if(!(R.backend.renderer instanceof window.__THREE__.WebGLRenderer))throw Error('Verified Three.js renderer is required.');window.__BOOT_STATUS__={state:'running',engine:R.backend.name,revision:window.__THREE__.REVISION,embedded:true,firstFrameRendered:true};}

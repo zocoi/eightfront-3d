@@ -149,23 +149,26 @@ class NetGuest{
   const prevPl=prev?new Map(prev.pl.map(a=>[a[0],{x:a[1],y:a[2],z:a[3]}])):null;
   for(const a of next.pl){const p=g.players[a[0]-1];if(!p||this.owns(a[0]-1))continue;lerpPos(p,s=>prevPl?.get(a[0]),{x:a[1],y:a[2],z:a[3]});}
   // Enemies: rebuild live list keyed by id so renderer fields persist.
+  const prevEn=prev?new Map(prev.en.map(a=>[a[0],a])):null,byId=new Map(g.enemies.map(e=>[e.id,e]));
   const seen=new Set();
   for(const a of next.en){
    const d=decodeEnemy(a);seen.add(d.id);
-   let e=g.enemies.find(e=>e.id===d.id);if(!e){e={id:d.id,type:d.type};g.enemies.push(e);}
+   let e=byId.get(d.id);if(!e){e={id:d.id,type:d.type};g.enemies.push(e);}
    Object.assign(e,{type:d.type,hp:d.hp,vx:d.vx,vy:d.vy,face:d.face,wind:d.wind,aim:d.aim,dead:false});
-   const po=prev?.en.find(q=>q[0]===d.id);
+   const po=prevEn?.get(d.id);
    if(po&&alpha<1){e.x=po[2]+(d.x-po[2])*alpha;e.y=po[3]+(d.y-po[3])*alpha;e.z=po[4]+(d.z-po[4])*alpha;}else{e.x=d.x;e.y=d.y;e.z=d.z;}
   }
   g.enemies=g.enemies.filter(e=>seen.has(e.id));
-  g.bullets=next.bl.map(a=>{const b=decodeBullet(a);const po=prev?.bl.find(q=>q[0]===b.id);if(po&&alpha<1){b.x=po[1]+(b.x-po[1])*alpha;b.y=po[2]+(b.y-po[2])*alpha;b.z=po[3]+(b.z-po[3])*alpha;}b.hitIds=new Set();return b;});
+  // Guests never run updateProjectiles, so hitIds tracking is pure waste here.
+  const prevBl=prev?new Map(prev.bl.map(a=>[a[0],a])):null;
+  g.bullets=next.bl.map(a=>{const b=decodeBullet(a);const po=prevBl?.get(b.id);if(po&&alpha<1){b.x=po[1]+(b.x-po[1])*alpha;b.y=po[2]+(b.y-po[2])*alpha;b.z=po[3]+(b.z-po[3])*alpha;}return b;});
   // Predicted own-shot tracers fly on a short TTL; the authoritative bullet
   // replaces them inside the round-trip window, so no dedup is needed.
   this.pred=this.pred.filter(b=>(b.life-=dt)>0);
   for(const b of this.pred){b.age+=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;}
   if(this.pred.length)g.bullets.push(...this.pred);
   // FX + sound replay — drain every buffered snap so skipped frames never drop events.
-  for(const snap of this.snaps)for(const e of decodeEvents(snap.ev||[]))if(e.seed>this.lastSerial){this.lastSerial=e.seed;e.born=g.t;spawnEventFx(g,e);}
+  for(const snap of this.snaps)for(const e of decodeEvents((snap.ev||[]).filter(q=>q.s>this.lastSerial))){this.lastSerial=e.seed;e.born=g.t;spawnEventFx(g,e);}
   this.predSnd=this.predSnd.filter(q=>g.t-q.t<.6);
   for(const s of next.snd||[]){
    // Predicted shots played their sound at fire time; swallow the echo.
@@ -175,6 +178,7 @@ class NetGuest{
   // Prediction: run the shared locomotion step on owned slots at render dt.
   // Aim, firing pose, muzzle/recoil and shot tracers are predicted locally too —
   // anything the guest sees on their own character should not wait a round-trip.
+  const nextPl=new Map(next.pl.map(a=>[a[0],a]));
   for(const s of this.slots){
    const p=g.players[s];if(!p||p.dead)continue;
    const c=localCtrls[s]||{};
@@ -187,7 +191,7 @@ class NetGuest{
    const edge=c.firePressed||(c.fire&&!p.predFire);p.predFire=!!c.fire;
    if((semi?edge:!!(c.fire||edge))&&p.predCD<=0)this.predictShot(p,c);
    // Gentle reconcile toward the latest authoritative pose.
-   const a=next.pl.find(q=>q[0]===s+1);
+   const a=nextPl.get(s+1);
    if(a){const err=Math.hypot(p.x-a[1],p.y-a[2]);if(err>1.6){p.x=a[1];p.y=a[2];p.vx=a[4];p.vy=a[5];}else if(err>.02){p.x+=(a[1]-p.x)*.2;p.y+=(a[2]-p.y)*.2;}}
   }
   stepParticles(g,dt); // g.t follows snapshots; particles age locally.
@@ -214,8 +218,13 @@ class NetGuest{
   this.predSnd.push({k:p.weapon,t:g.t});this.onSound(p.weapon);
  }
  sendInputs(localCtrls){
-  const packs={};
-  for(const [i,s] of this.slots.entries())packs[s]=packInput(localCtrls[s]||{});
+  const packs={};let sig='';
+  for(const [i,s] of this.slots.entries()){const p=packInput(localCtrls[s]||{});packs[s]=p;sig+=s+':'+p.b+(p.a?'@'+p.a.join(','):'')+';';}
+  // Inputs are level-held, so identical packs carry no new information —
+  // skip them and heartbeat ~5×/s to keep the input stream alive.
+  const now=performance.now();
+  if(sig===this.inSig&&now-this.inAt<180)return;
+  this.inSig=sig;this.inAt=now;
   this.t.send('host',{k:'in',seq:++this.seq,packs});
  }
  close(){if(this.closed)return;this.closed=true;try{this.t.send('host',{k:'bye'});this.t.close();}catch{}}
