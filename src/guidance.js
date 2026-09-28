@@ -5,12 +5,12 @@
  */
 class CombatGuide {
  constructor({progress={},onLearn=()=>{},sound=()=>{}}={}) {
-  this.progress={};for(const id of [1,2])this.progress[id]=new Set((Array.isArray(progress?.[id])?progress[id]:[]).filter(x=>['move','jump','fire','swap','depth-prone','depth-stand','depth-jump','depth-align','armor','advance'].includes(x)));
+  this.progress={};for(let id=1;id<=SQUAD_MAX;id++)this.progress[id]=new Set((Array.isArray(progress?.[id])?progress[id]:[]).filter(x=>['move','jump','fire','swap','depth-prone','depth-stand','depth-jump','depth-align','armor','advance'].includes(x)));
   this.onLearn=onLearn;this.sound=sound;this.level='contextual';this.stage=null;this.room=-1;this.boss=null;
   this.rows=new Map();this.shots=new WeakMap();this.feedback=new Map();this.lastSound={};this.events=[];this.serial=0;
  }
- export(){return Object.fromEntries([1,2].map(id=>[id,[...this.progress[id]].sort()]));}
- clearLearning(){for(const id of [1,2])this.progress[id].clear();for(const row of this.rows.values())row.introAt=this.lastT||0;this.onLearn(this.export());}
+ export(){return Object.fromEntries(Array.from({length:SQUAD_MAX},(_,i)=>[i+1,[...this.progress[i+1]].sort()]));}
+ clearLearning(){for(let id=1;id<=SQUAD_MAX;id++)this.progress[id].clear();for(const row of this.rows.values())row.introAt=this.lastT||0;this.onLearn(this.export());}
  learn(id,key,g){if(!id||!this.progress[id]||this.progress[id].has(key))return;this.progress[id].add(key);this.onLearn(this.export());this.record('learn',g,{owner:id,key});}
  record(type,g,data={}){this.events.push({type,t:g.t,stage:g.stageIndex,room:g.room,...data});if(this.events.length>96)this.events.shift();}
  context(g){

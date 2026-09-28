@@ -3,3 +3,6 @@ Every build verifies both Git blob fingerprints before creating three.bundle.js.
 three.bundle.js is a generated file; run `npm run build` to produce it. Do not commit it.
 No download or npm installation is needed. See ../NOTICE.md for exact hashes and provenance.
 Do not mix r180 or another revision into this pinned pair.
+
+peerjs.min.js is the official PeerJS 1.5.5 browser bundle (MIT, see PEERJS-LICENSE.txt),
+used for online co-op host/guest connections and embedded verbatim by scripts/build.mjs.

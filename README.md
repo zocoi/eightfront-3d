@@ -10,6 +10,7 @@ An unofficial Three.js tribute to the 8-bit run-and-gun classics: eight stages, 
 - **Eight bosses** with exposed/sealed core phases and target-local markers that tell you what can be hit right now.
 - **Five weapons** (rifle, machine gun, spread, laser, flame) plus grenades; pick-ups carry one reserve weapon.
 - **Local co-op** on one keyboard or two gamepads; no friendly fire, a downed player rejoins at the next life.
+- **Online co-op for up to 10 players** — the host's browser runs the authoritative simulation (PeerJS/WebRTC); guests get responsive prediction and interpolation. Squad size scales difficulty: more players means tougher, denser enemies.
 - **Modern or retro rules** — mouse aim, hold-to-fire and short hops, or fixed jump height and eight-way aim with tap-to-fire.
 - **In-game guidance** — contextual cues for the base rooms and bosses, switchable to always-on or off.
 - **UI in English, 简体中文 and 日本語** — switch from the main menu.
@@ -60,9 +61,18 @@ Solo play also accepts the arrow keys, Z (fire) and X (jump). ↓ + Jump drops t
 
 In the base's regular rooms, strafe sideways to line up with the target column. For low targets, release movement and SHIFT first, then hold Down to fire prone; high targets need a jumping shot. The mouse does not replace posture switching in the base. Once every core is destroyed, move forward into the next room.
 
+## Online co-op
+
+Choose **Squad → Online co-op**, then **Host a room** and share the 5-letter code, or enter a code and **Join room**. Up to 10 commandos — each player gets an authored callsign and a distinct uniform/accent color shown on the character, name tag, HUD card and guidance cues. Players who join mid-stage spectate until the next stage starts. A device can drive two local players (P1+P2 keys) inside an online room.
+
+- Host's browser is authoritative; guests send inputs, the host streams ~20 Hz snapshots; guests predict their own movement and interpolate everyone else.
+- Difficulty scales per stage with the joined player count: +30 % enemy/boss HP and +12 % spawn pressure per extra player (≈3.7× HP at 10 players).
+- `?local` forces the BroadcastChannel transport so you can test a room between tabs in one browser without PeerJS/network. `?peer=host:port` points the client at a local PeerServer.
+- `node netcheck.mjs` smoke-tests the protocol/room/snapshot round-trip without a browser.
+
 ## Options
 
-- **Squad** — solo or local 2P. **Language** — English, 简体中文, 日本語.
+- **Squad** — solo, local 2P, or online co-op. **Language** — English, 简体中文, 日本語.
 - **Campaign options** — Modern / Retro controls; Arcade (3 armor, checkpoints refill) / Classic (one hit) difficulty.
 - **Settings** — quality preset (Smooth / High / Cinematic), render resolution 50–125 %, reduced screen shake and flashes, guidance level (contextual / enhanced / off), reset of learned controls.
 - **Diagnostics** — F3 frame stats, F8 hides the UI, and an export of raw frame times as JSON.
@@ -82,6 +92,9 @@ Plain browser scripts concatenated by `scripts/build.mjs`; no bundler or framewo
 | `src/renderer-three.js`, `src/shaders.js` | Forward HDR pipeline on Three.js r179 |
 | `src/characters.js`, `src/geometry.js`, `src/*-assets.js` | Procedural rigs, meshes and biome props |
 | `src/stage-previews.js` | Embedded stage thumbnails (crops of the game's own frames) |
+| `src/roster.js`, `src/fx.js` | Squad identity table (10 authored kits) and event-driven particle recipes |
+| `src/net-protocol.js`, `src/net-room.js`, `src/net-transport.js`, `src/net-ui.js` | Wire protocol, host/guest rooms, PeerJS + BroadcastChannel transports, lobby overlay |
+| `vendor/peerjs.min.js` | PeerJS 1.5.5 (MIT), embedded into the single-file build |
 
 ## License
 

@@ -39,15 +39,15 @@ class CombatGuideView {
    e.dataset.target=q.id;e.dataset.edge=pos.x>innerWidth-150?'right':'left';
   }
   for(const p of living){const ray=guide.ray(g,p);if(!ray)continue;const point=this.projection(...ray.point);if(!point.visible||point.x<5||point.x>innerWidth-5||point.y<110||point.y>innerHeight-20)continue;
-   const e=this.node('ray'+p.id,'aim-preview p'+p.id);e.dataset.hit=ray.hit?'yes':'no';this.html(e,`<i></i>${g.playerCount===2?`<small>${p.id}</small>`:''}`);this.pos(e,point.x,point.y);
+   const e=this.node('ray'+p.id,'aim-preview p'+p.id);e.style.setProperty('--cue',squadAccent(p.id));e.dataset.hit=ray.hit?'yes':'no';this.html(e,`<i></i>${g.playerCount>1?`<small>${p.id}</small>`:''}`);this.pos(e,point.x,point.y);
   }
   // One concise instruction per live player, never a stack of global tutorial toasts.
   const boxes=[];
   for(const a of advice){
    if(a.essential){if(a.owner!==living[0]?.id)continue;const e=this.node('advance','advance-cue');const w=this.words(a);this.html(e,`${this.icon('advance')}<span>${w.text}</span>${guide.level!=='off'?`<kbd>${w.key}</kbd>`:''}`);const at=this.projection(0,.65,-7);this.pos(e,clamp(at.x,140,innerWidth-140),clamp(at.y,155,innerHeight-95));continue;}
    if(!a.target)continue;const pos=this.projection(a.target.x,a.target.y,a.target.z);if(!pos.visible)continue;
-   const e=this.node('player'+a.owner,'instruction-cue p'+a.owner);e.dataset.reason=a.code;e.dataset.recovery=String(!!a.recovery);const w=this.words(a);
-   this.html(e,`${this.icon(a.code)}<span class="cue-copy">${g.playerCount===2?`<b class="cue-owner">P${a.owner}${targets.length>1?' · '+t('target')+' '+(targets.indexOf(a.target)+1):''}</b>`:''}<strong>${w.text}</strong>${w.key?`<kbd>${w.key}</kbd>`:''}</span>`);
+   const e=this.node('player'+a.owner,'instruction-cue p'+a.owner);e.style.setProperty('--cue',squadAccent(a.owner));e.dataset.reason=a.code;e.dataset.recovery=String(!!a.recovery);const w=this.words(a);
+   this.html(e,`${this.icon(a.code)}<span class="cue-copy">${g.playerCount>1?`<b class="cue-owner">P${a.owner} ${playerName(g.players[a.owner-1])}${targets.length>1?' · '+t('target')+' '+(targets.indexOf(a.target)+1):''}</b>`:''}<strong>${w.text}</strong>${w.key?`<kbd>${w.key}</kbd>`:''}</span>`);
    const width=Math.max(160,e.offsetWidth),height=e.offsetHeight||48;let x=pos.x,y=pos.y-76;
    if(g.boss?.active&&g.stage.mode!=='depth'){const p=g.players[a.owner-1],edge=this.projection(a.target.x+(a.target.rx||1),a.target.y,a.target.z);x+=(p.x<a.target.x?-1:1)*(width/2+Math.abs(edge.x-pos.x)+60);y=pos.y-60;}
    if(advice.some(b=>b!==a&&b.target===a.target))x+=(a.owner===1?-1:1)*(width/2+9);
@@ -56,7 +56,7 @@ class CombatGuideView {
    y=Math.max(145+height/2,y);this.pos(e,x,y);boxes.push({x,y,w:width});
   }
   // Discrete spoken state; not hit ticks, health ticks or every-frame coordinates.
-  const spoken=advice.map(a=>`${g.playerCount===2?t('spokenPlayer',a.owner):''}${this.words(a).text} ${this.words(a).key}`).join(t('spokenSep'));
+  const spoken=advice.map(a=>`${g.playerCount>1?t('spokenPlayer',a.owner):''}${this.words(a).text} ${this.words(a).key}`).join(t('spokenSep'));
   if(!spoken&&g.t-this.speechAt>6){this.lastSpeech='';document.getElementById('guideAnnounce').textContent='';}
   if(spoken!==this.candidateSpeech){this.candidateSpeech=spoken;this.candidateAt=g.t;}
   if(spoken&&spoken!==this.lastSpeech&&g.t-this.candidateAt>.65&&g.t-this.speechAt>2.5){document.getElementById('guideAnnounce').textContent=spoken;this.lastSpeech=spoken;this.speechAt=g.t;}
