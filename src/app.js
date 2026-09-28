@@ -3,7 +3,7 @@
 function initApp(){
  const $=id=>document.getElementById(id),keys=new Set(),pressed=new Set();
  const mouse={x:0,y:0,active:false,fire:false,pressed:false};
- let last=0,acc=0,uiTime=0,showPerf=false,helpPaused=false,settingsPaused=false,frames=[],lastPads=[];
+ let last=0,acc=0,uiTime=0,showPerf=false,helpPaused=false,settingsPaused=false,onlineMenu=false,frames=[],lastPads=[];
  let quality='high',scale=1,playerCount=1,inputMode='modern',saves={},storageOK=true,lang='en';
  let guideLevel='contextual',guideProgress={},guide;const playerDevices=Array.from({length:SQUAD_MAX},()=>'keyboard');let net=null;
  let reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches,tutorialEnabled=true,lastDevice='keyboard',externalInputSeen=false;
@@ -46,7 +46,11 @@ function initApp(){
  function openModal(id){if($(id).hidden)returnFocus.set(id,document.activeElement);$(id).hidden=false;refreshModal();}
  function closeModal(id){$(id).hidden=true;refreshModal();}
  function closeAuxiliary(){for(const id of ['stageSelect','help','settingsPanel','deviceNotice'])$(id).hidden=true;helpPaused=false;settingsPaused=false;}
- function togglePause(){if(activeModal&&!['pause'].includes(activeModal))return;G.pause();clearInput();syncUI();}
+ function togglePause(){if(activeModal&&!['pause'].includes(activeModal))return;
+ // Online rooms never stop the sim: pausing the host would freeze every
+ // guest, so the pause panel becomes a plain menu overlay instead.
+ if(G.online&&(G.mode==='playing'||onlineMenu)){onlineMenu=!onlineMenu;onlineMenu?openModal('pause'):closeModal('pause');clearInput();syncUI();return;}
+ G.pause();clearInput();syncUI();}
  function readPads(){try{return Array.from(navigator.getGamepads?.()||[]).map(a=>a?.connected?a:null);}catch{return [];}}
  function deviceBlocked(){const touchOnly=matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches&&!externalInputSeen&&!readPads().some(Boolean);return touchOnly||(innerWidth<700&&innerHeight>innerWidth);}
  function checkDevice(){
@@ -56,9 +60,9 @@ function initApp(){
  }
  function requireDevice(){if(checkDevice())return true;openModal('deviceNotice');return false;}
  let activeTip=null;
- function start(i=0,options={}){if(!requireDevice())return false;AudioFX.init();clearInput();closeAuxiliary();G.start(i,{difficulty:$('difficulty').value,playerCount,inputMode,...options});frames=[];last=0;activeTip=null;syncUI();$('game').focus();return true;}
- function retryStage(){if(!requireDevice())return false;AudioFX.init();clearInput();closeAuxiliary();G.restartStage();net?.isHost&&net.broadcastStage(G.stageIndex);frames=[];last=0;syncUI();$('game').focus();return true;}
- function menu(){clearInput();closeAuxiliary();NetUI.closeNet();const ns=$('netStatus');if(ns)ns.hidden=true;G.mode='menu';G.playerCount=playerCount;G.stage=makeStage(0);G.cam=13;G.camY=0;G.t=0;G.player=null;G.players=[];G.enemies=[];G.bullets=[];G.boss=null;CampaignWorld.create(G.stage);document.body.classList.remove('photo');syncUI();}
+ function start(i=0,options={}){if(!requireDevice())return false;AudioFX.init();clearInput();closeAuxiliary();G.start(i,{difficulty:$('difficulty').value,playerCount,inputMode,...options});frames=[];last=0;activeTip=null;onlineMenu=false;syncUI();$('game').focus();return true;}
+ function retryStage(){if(!requireDevice())return false;AudioFX.init();clearInput();closeAuxiliary();G.restartStage();net?.isHost&&net.broadcastStage(G.stageIndex);frames=[];last=0;onlineMenu=false;syncUI();$('game').focus();return true;}
+ function menu(){clearInput();closeAuxiliary();onlineMenu=false;NetUI.closeNet();const ns=$('netStatus');if(ns)ns.hidden=true;G.mode='menu';G.playerCount=playerCount;G.stage=makeStage(0);G.cam=13;G.camY=0;G.t=0;G.player=null;G.players=[];G.enemies=[];G.bullets=[];G.boss=null;CampaignWorld.create(G.stage);document.body.classList.remove('photo');syncUI();}
  const mappings=[
   {left:['KeyA'],right:['KeyD'],up:['KeyW'],down:['KeyS'],fire:['KeyJ'],jump:['Space','KeyK'],lock:['ShiftLeft'],swap:['KeyQ'],grenade:['KeyE','KeyG']},
   {left:['ArrowLeft'],right:['ArrowRight'],up:['ArrowUp'],down:['ArrowDown'],fire:['Numpad1','Slash'],jump:['Numpad2','Period'],lock:['ShiftRight'],swap:['Numpad0','Comma'],grenade:['Numpad3','Quote']}
@@ -111,7 +115,7 @@ function initApp(){
     if(left||right)c.move=+!!right-+!!left;c.up||=!!b[12]||y<-.4;c.down||=!!b[13]||y>.5;c.jump||=!!b[0];c.jumpPressed||=!!b[0]&&!previous[0];c.fire||=!!b[7]||!!b[2];c.firePressed||=(!!b[7]&&!previous[7])||(!!b[2]&&!previous[2]);c.lock||=!!b[4];c.swap||=!!b[3]&&!previous[3];c.grenade||=!!b[5]&&!previous[5];
     if(b.some(Boolean)||Math.hypot(x,y)>.3){lastDevice='gamepad';playerDevices[li]='gamepad';externalInputSeen=true;}
     lastPads[li]=b;
-    if(b[9]&&!previous[9]){G.pause();clearInput();syncUI();return {};}
+    if(b[9]&&!previous[9]){togglePause();return {};}
     const rx=pad.axes[2]||0,ry=pad.axes[3]||0,p=G.players[li];if(G.inputMode!=='retro'&&Math.hypot(rx,ry)>.3&&p)c.aimPoint=G.stage.mode==='depth'?[rx*7,2-ry*4,-14]:[p.x+rx*15,p.y+1.48-ry*15,0];
    }else lastPads[li]=[];return c;
   };
@@ -168,7 +172,7 @@ function initApp(){
  const guideView=new CombatGuideView({game:G,guide,renderer:R,binding,device:id=>playerDevices[id-1],level:()=>guideLevel});
  function syncUI(){
   const p=G.player,s=G.stage,saved=saves[playerCount],valid=validSave(saved);
-  $('menu').hidden=G.mode!=='menu';$('hud').hidden=!p||G.mode==='menu';$('pause').hidden=G.mode!=='paused';$('result').hidden=!['clear','won','over'].includes(G.mode);$('pauseButton').hidden=!p||G.mode==='menu';
+  $('menu').hidden=G.mode!=='menu';$('hud').hidden=!p||G.mode==='menu';$('pause').hidden=G.mode!=='paused'&&!(onlineMenu&&G.mode==='playing');$('pause').querySelector('.kicker').textContent=onlineMenu?'MENU':'PAUSED';$('result').hidden=!['clear','won','over'].includes(G.mode);$('pauseButton').hidden=!p||G.mode==='menu';
   $('continue').hidden=!valid;text('continue',valid?t('continueAt',saved.stage+1):t('continue'));
   document.body.classList.toggle('coop',G.mode==='menu'?playerCount>1:G.playerCount>1);document.body.classList.toggle('reduced-motion',reducedMotion);
   $('notification').hidden=G.note<=0||!['playing','paused'].includes(G.mode);text('notification',G.message.split(' / ')[0]);
@@ -225,12 +229,12 @@ function initApp(){
  $('language').onchange=e=>{lang=I18N[e.target.value]?e.target.value:'en';persist();applyLanguage();};
  $('stageGrid').onclick=e=>{const el=e.target.closest('[data-stage]');if(el)start(Number(el.dataset.stage),{practice:true});};$('selectStages').onclick=()=>openModal('stageSelect');$('closeStages').onclick=()=>closeModal('stageSelect');
  $('pauseButton').onclick=togglePause;$('resume').onclick=togglePause;$('restart').onclick=retryStage;$('quit').onclick=menu;$('resultMenu').onclick=menu;$('again').onclick=retryStage;
- $('next').onclick=()=>{if(!requireDevice())return;clearInput();G.nextStage();net?.isHost&&net.broadcastStage(G.stageIndex);frames=[];syncUI();};
+ $('next').onclick=()=>{if(!requireDevice())return;clearInput();G.nextStage();net?.isHost&&net.broadcastStage(G.stageIndex);frames=[];onlineMenu=false;syncUI();};
  let soundEnabled=true;$('audioButton').setAttribute('aria-pressed','true');
  function syncAudioButton(){const label=t(soundEnabled?'mute':'unmute');$('audioButton').title=label;$('audioButton').setAttribute('aria-label',label);}
  $('audioButton').onclick=()=>{AudioFX.init();soundEnabled=AudioFX.toggle();$('audioButton').setAttribute('aria-pressed',String(soundEnabled));syncAudioButton();};
  const fullscreen=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.().catch(()=>{});};$('fullscreen').onclick=fullscreen;
- function openSettings(){settingsPaused=G.mode==='playing';if(settingsPaused)G.pause();clearInput();syncUI();openModal('settingsPanel');}
+ function openSettings(){settingsPaused=G.mode==='playing';if(settingsPaused&&!G.online)G.pause();clearInput();syncUI();openModal('settingsPanel');}
  $('settingsButton').onclick=openSettings;$('openSettings').onclick=openSettings;
  $('closeSettings').onclick=()=>{closeModal('settingsPanel');if(settingsPaused&&G.mode==='paused')G.pause();settingsPaused=false;clearInput();syncUI();};
  $('quality').value=quality;$('renderScale').value=scale;text('scaleValue',Math.round(scale*100)+'%');$('reduceMotion').checked=reducedMotion;$('showTutorial').checked=guideLevel!=='off';$('guidanceLevel').value=guideLevel;
@@ -238,7 +242,7 @@ function initApp(){
  $('reduceMotion').onchange=e=>{reducedMotion=e.target.checked;R.setMotion(reducedMotion);document.body.classList.toggle('reduced-motion',reducedMotion);persist();};$('showTutorial').onchange=e=>{tutorialEnabled=e.target.checked;guideLevel=tutorialEnabled?'contextual':'off';$('guidanceLevel').value=guideLevel;guide.level=guideLevel;persist();syncUI();};
  $('guidanceLevel').onchange=e=>{guideLevel=e.target.value;guide.level=guideLevel;tutorialEnabled=guideLevel!=='off';$('showTutorial').checked=tutorialEnabled;persist();syncUI();};
  $('resetLearning').onclick=()=>{guide.clearLearning();text('learningStatus',t('learningReset'));};
- $('helpButton').onclick=()=>{helpPaused=G.mode==='playing';if(helpPaused)G.pause();clearInput();syncUI();openModal('help');};
+ $('helpButton').onclick=()=>{helpPaused=G.mode==='playing';if(helpPaused&&!G.online)G.pause();clearInput();syncUI();openModal('help');};
  $('closeHelp').onclick=()=>{closeModal('help');if(helpPaused&&G.mode==='paused')G.pause();helpPaused=false;clearInput();syncUI();};$('closeDevice').onclick=()=>closeModal('deviceNotice');
  function performanceReport(){const sorted=[...frames].sort((a,b)=>a-b),mean=frames.reduce((a,b)=>a+b,0)/Math.max(1,frames.length);return{build:'0.15.0',renderer:R.backend.name,device:R.device,browser:navigator.userAgent,stage:G.stageIndex+1,playerCount:G.playerCount,inputMode:G.inputMode,mode:G.mode,render:R.stats,samples:frames.length,meanFPS:frames.length?1000/mean:null,p95FrameMs:sorted[Math.floor(sorted.length*.95)]||null,rawFrameTimesMs:[...frames],notes:'Actual animation-frame intervals, not simulation speed. Benchmark the target GPU separately.'};}
  function saveFile(name,value,type){const url=URL.createObjectURL(new Blob([value],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
@@ -260,9 +264,9 @@ function initApp(){
  });
  addEventListener('keyup',e=>keys.delete(e.code));
  document.addEventListener('focusin',e=>{if(activeModal&&!$(activeModal).contains(e.target))preferredFocus(activeModal)?.focus({preventScroll:true});});
- addEventListener('blur',()=>{clearInput();if(G.mode==='playing')G.pause();syncUI();});
- document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.mode==='playing'){G.pause();clearInput();syncUI();}});
- addEventListener('resize',()=>{if(deviceBlocked()&&G.mode==='playing'){G.pause();clearInput();syncUI();openModal('deviceNotice');}else checkDevice();});
+ addEventListener('blur',()=>{clearInput();if(G.mode==='playing'&&!G.online)G.pause();syncUI();});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.mode==='playing'&&!G.online){G.pause();clearInput();syncUI();}});
+ addEventListener('resize',()=>{if(deviceBlocked()&&G.mode==='playing'){if(!G.online)G.pause();clearInput();syncUI();openModal('deviceNotice');}else checkDevice();});
  addEventListener('gamepadconnected',()=>{externalInputSeen=true;lastDevice='gamepad';checkDevice();});
  addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;if(G.mode==='playing'&&(e.movementX||e.movementY))mouse.active=true;});
  $('game').addEventListener('mousedown',e=>{if(e.button===0&&G.mode==='playing'){mouse.fire=true;mouse.pressed=true;mouse.active=true;playerDevices[0]='mouse';mouse.x=e.clientX;mouse.y=e.clientY;AudioFX.init();$('game').focus();}});
