@@ -206,7 +206,7 @@ function initApp(){
   refreshModal();
  }
  function safeFrame(now){try{frame(now);}catch(err){window.__BOOT_STATUS__={state:'render-error',engine:R.backend.name,message:err.message};console.error(err);$('loading').hidden=false;$('loading').classList.add('failed');$('loadMessage').textContent=t('renderError')+err.message;$('retry').hidden=false;}}
- function frame(now){
+ function frame(now,skipDraw){
   const raw=last?now-last:16.667;last=now;const dt=Math.min(.15,raw/1000);G.cameraHalfWidth=G.playerCount>1?Math.min(14.2+(G.playerCount-2)*1.6,22):11.7;
   if(G.mode==='playing'&&net?.isGuest){
    const c=controls();net.sendInputs(c);net.tick(dt,c);
@@ -214,10 +214,22 @@ function initApp(){
   }
   else if(G.mode==='playing'){acc+=dt;let steps=0;while(acc>=1/120&&steps<18){const c=controls();if(net?.isHost)net.fillInputs(c);G.update(1/120,c);acc-=1/120;steps++;}if(steps===18)acc=0;net?.isHost&&net.postTick(dt);if(G.t>1.5){frames.push(raw);if(frames.length>4000)frames.shift();}}
   else if(G.mode==='menu'){controls();G.t+=Math.min(dt,.05);G.cam=13+(reducedMotion?0:Math.sin(G.t*.11)*.7);}else controls();
-  CampaignWorld.draw(G,G.mode==='menu');AudioFX.tick(G.mode==='playing',!!G.boss?.active,G.stageIndex);if(now-uiTime>100){syncUI();uiTime=now;}
+  if(!skipDraw)CampaignWorld.draw(G,G.mode==='menu');AudioFX.tick(G.mode==='playing',!!G.boss?.active,G.stageIndex);if(now-uiTime>100){syncUI();uiTime=now;}
   if(window.__BOOT_STATUS__?.state==='initialized'){if(!(R.backend.renderer instanceof window.__THREE__.WebGLRenderer))throw Error('Verified Three.js renderer is required.');window.__BOOT_STATUS__={state:'running',engine:R.backend.name,revision:window.__THREE__.REVISION,embedded:true,firstFrameRendered:true};}
-  requestAnimationFrame(safeFrame);
+  if(!skipDraw)requestAnimationFrame(safeFrame);
  }
+ // Hidden tabs get no rAF at all, which would freeze a host's sim for every
+ // guest. While the page is hidden in a live room, catch up on a coarse
+ // timer: fixed 160ms steps, skipped drawing, capped so a long sleep
+ // doesn't burst hundreds of sim frames at once.
+ setInterval(()=>{
+  if(!document.hidden||!net||G.mode!=='playing')return;
+  const target=performance.now();
+  let catchUp=0;
+  while(last<target-160&&catchUp++<40)frame(last+160,true);
+  if(last<target-160)last=target-160;
+  frame(target,true);
+ },250);
  $('players').value=String(playerCount);$('rules').value=inputMode;
  let onlineMode=false;
  function selection(){const v=Number($('players').value);onlineMode=v===3;playerCount=v===2?2:1;inputMode=$('rules').value==='retro'?'retro':'modern';if(G.mode==='menu')G.playerCount=playerCount;text('rulesHint',t(inputMode==='retro'?'rulesRetro':'rulesModern'));$('coopHint').hidden=v!==2;persist();syncUI();}
