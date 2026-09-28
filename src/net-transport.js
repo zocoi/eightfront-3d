@@ -70,7 +70,9 @@ class PeerTransport{
     this.id=id;
     const c=this.conn=peer.connect('ef3-'+code,{reliable:true});
     // onReady waits for the channel to open — PeerJS drops sends made earlier.
-    c.on('open',ready);
+    // The conn must also land in `conns`: send('host',...) resolves through it,
+    // so without this join/inputs/bye are silently dropped.
+    c.on('open',()=>{this.conns.set('host',c);ready();});
     c.on('data',d=>this.msgFn('host',d));
     c.on('close',()=>{this.conns.delete('host');this.closeFn('host');});
     c.on('error',e=>{if(!this.ready){clearTimeout(this.timer);onError(e);}else{this.conns.delete('host');this.closeFn('host');}});
