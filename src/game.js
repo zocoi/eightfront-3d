@@ -104,8 +104,8 @@ class CampaignGame{
  livingPlayers(){return this.players.filter(p=>!p.dead&&p.lives>0);}
  targetPlayer(x=0,y=0,z=0){return this.livingPlayers().sort((a,b)=>Math.abs(a.x-x)-Math.abs(b.x-x)||Math.abs(a.y-y)-Math.abs(b.y-y))[0]||this.player;}
  rewardedCarry(){const data=this.snapshot();data.players=data.players.map(p=>({...p,lives:Math.min(7,p.lives+1)}));data.lives=data.players[0].lives;return data;}
- restore(data,{practice=false}={}){this.score=data.score;this.kills=data.kills;this.deaths=data.deaths;this.totalTime=data.totalTime;this.history=data.history.map(h=>({...h}));this.start(data.stage,{practice,difficulty:data.difficulty,carry:data,playerCount:data.playerCount||1,inputMode:data.inputMode||'modern'});}
- nextStage(){if(this.mode!=='clear')return false;if(this.stageIndex===7){this.mode='won';return false;}this.start(this.stageIndex+1,{carry:this.rewardedCarry(),difficulty:this.difficulty,practice:this.practice});return true;}
+ restore(data,{practice=false}={}){this.score=data.score;this.kills=data.kills;this.deaths=data.deaths;this.totalTime=data.totalTime;this.history=data.history.map(h=>({...h}));this.start(data.stage,{practice,difficulty:data.difficulty,carry:data,playerCount:data.playerCount||1,inputMode:data.inputMode||'modern',online:this.online});}
+ nextStage(){if(this.mode!=='clear')return false;if(this.stageIndex===7){this.mode='won';return false;}this.start(this.stageIndex+1,{carry:this.rewardedCarry(),difficulty:this.difficulty,practice:this.practice,online:this.online});return true;}
  restartStage(){const entry=this.stageEntry||this.snapshot(),practice=this.practice;this.restore(entry,{practice});this.log('stage-retry',{practice,restoredHistory:this.history.length});}
  pause(){if(this.mode==='playing')this.mode='paused';else if(this.mode==='paused'){this.mode='playing';this.lastJump=false;for(const p of this.players){p.lastJump=false;p.lastFire=false;}}}
  terrain(x){if(this.stage.mode==='depth')return 0;for(const [a,b,y]of this.stage.floors)if(x>=a&&x<=b)return y;return-15;}
