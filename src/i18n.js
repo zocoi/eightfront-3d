@@ -4,7 +4,7 @@ const I18N={
  en:{
   gameAria:'Eight Fronts 3D campaign. Keyboard: A D move, Space jump, J fire, Escape pause.',
   loading:'Loading campaign…',reload:'Reload',quickActions:'Quick actions',sound:'Sound',mute:'Mute',unmute:'Unmute',help:'Controls',fullscreen:'Fullscreen',pause:'Pause',
-  mainMenu:'Main menu',eyebrow:'Eight-stage campaign · Local co-op',intro:'Break in. Break through. Come back alive.',deploy:'Start campaign',
+  mainMenu:'Main menu',eyebrow:'Eight-stage campaign · Solo to 10-player co-op',intro:'Break in. Break through. Come back alive.',deploy:'Start campaign',
   continue:'Continue campaign',continueAt:n=>`Continue campaign · Stage ${n} →`,
   squad:'Squad',playersAria:'Players',solo:'Solo',coop:'Local 2P',coopHint:'P2: arrows move · / fire · . jump',language:'Language',
   selectStages:'Select stage →',settings:'Settings',campaignOptions:'Campaign options',controls:'Controls',controlScheme:'Control scheme',modern:'Modern',retro:'Retro',
@@ -15,7 +15,7 @@ const I18N={
   deviceHintPortrait:'Desktop edition · use landscape with a keyboard or gamepad',deviceHintTouch:'This edition has no touch combat controls',
   storageNote:'This browser cannot save progress; the current game is unaffected.',
   gameStatus:'Game status',p1Status:'Player 1 status',p2Status:'Player 2 status',armor:'Armor',armorAria:(hp,max)=>`Armor ${hp} / ${max}`,grenades:'Grenades',
-  reserve:r=>r?`Reserve ${r}`:'Reserve —',rejoining:'Rejoining soon',eliminated:'Out · teammate continues',
+  reserve:r=>r?`Reserve ${r}`:'Reserve -',rejoining:'Rejoining soon',eliminated:'Out · teammate continues',
   playerAria:(n,lives,hp,weapon,grenades)=>`Player ${n}, ${lives} lives, ${hp} armor, ${weapon}, ${grenades} grenades`,
   weapons:{R:'Assault rifle',M:'Machine gun',S:'Spread shot',L:'Laser',F:'Flamethrower'},
   score:'Score',time:'Time',kills:'Kills',deaths:'Deaths',combo:n=>`${n} combo`,cores:(a,b)=>`Cores ${a}/${b}`,exitOpen:'Exit open',
@@ -67,15 +67,16 @@ const I18N={
   spokenPlayer:n=>`Player ${n}, `,spokenSep:'. ',
   cue:{alignLeft:'Align left',alignRight:'Align right',prone:'Fire prone',stand:'Fire standing',jump:'Fire jumping',jumpRelease:'then jump and fire',stop:'Stop, then go prone',releaseLock:'then fire prone',armor:'Armor blocking · keep firing',advance:'Grid down · advance',sealed:'Sealed · dodge for now',dodgeRush:'Jump over the rush',dodgeLeap:'Clear the landing · dodge the slam',prerequisite:'Break the protective parts first',barrier:'Destroy the orange core first'},
   feedback:{damage:'Hit',armor:'Armor damaged',armorBreak:'Armor broken',destroyed:'Destroyed',sealed:'Sealed',prerequisite:'Still protected'},
-  online:'Online co-op',lobbyTitle:'Online squad',lobbyNote:'Host a room and share the code, or join with a code. Up to 8 players; joiners spectate until the next stage.',
+  online:'Online co-op',lobbyTitle:'Online squad',lobbyNote:'Host a room and share the code, or join with a code. Up to 10 players; joiners spectate until the next stage.',
   netHost:'Host a room',netJoin:'Join room',codeLabel:'Room code',codePlaceholder:'CODE',netStart:'Start mission',netLeave:'Leave room',
-  netConnecting:'Connecting…',netWaiting:'Waiting in lobby',netReady:'Ready',netSpectator:'Spectating until next stage',netHostLeft:'Host left the room',
-  netOpen:'Room open · share the code',netError:'Connection failed. Check the code and try again.',netNoRoom:'No room found for that code.',netP2:'This device also drives P2 (local co-op)'
+  netRoster:'Squad',netOpenSlot:'Open',netYou:'You',netCopy:'Copy link',netCopied:'Copied',
+  netConnecting:'Connecting…',netWaiting:'Waiting in lobby',netReady:'Ready',netSpectator:'Spectating',netHostLeft:'Host left the room',
+  netOpen:'Room open · share the code',netError:'Connection failed. Check the code and try again.',netNoRoom:'No room found for that code.',netName:'Name',netP2:'This device also drives P2 (local co-op)'
  },
  zh:{
   gameAria:'Eight Fronts 三维战役。键盘操作：A D 移动，Space 跳跃，J 射击，Escape 暂停。',
   loading:'正在装载战役…',reload:'重新加载',quickActions:'快捷操作',sound:'声音',mute:'关闭声音',unmute:'开启声音',help:'操作帮助',fullscreen:'全屏',pause:'暂停',
-  mainMenu:'主菜单',eyebrow:'八关战役 · 本地合作',intro:'突入、突破、活着回来。',deploy:'开始战役',
+  mainMenu:'主菜单',eyebrow:'八关战役 · 1-10 人合作',intro:'突入、突破、活着回来。',deploy:'开始战役',
   continue:'继续战役',continueAt:n=>`继续战役 · 第 ${n} 关 →`,
   squad:'小队',playersAria:'玩家人数',solo:'单人',coop:'本地双人',coopHint:'P2：方向键移动 · / 射击 · . 跳跃',language:'语言',
   selectStages:'选择关卡 →',settings:'设置',campaignOptions:'战役选项',controls:'操作',controlScheme:'操作模式',modern:'现代',retro:'复古',
@@ -84,7 +85,7 @@ const I18N={
   offlineExport:'保存离线版 ↓',move:'移动',jump:'跳跃',fire:'射击',stick:'摇杆',footer:'非官方致敬作品 · 原创程序化资产',
   deviceHintPortrait:'桌面版 · 请使用横屏键盘或手柄',deviceHintTouch:'此版本不支持触屏战斗操作',storageNote:'此浏览器无法保存进度；当前游戏不受影响。',
   gameStatus:'游戏状态',p1Status:'玩家 1 状态',p2Status:'玩家 2 状态',armor:'护甲',armorAria:(hp,max)=>`护甲 ${hp} / ${max}`,grenades:'手雷',
-  reserve:r=>r?`备用 ${r}`:'备用 —',rejoining:'即将重新加入',eliminated:'已出局 · 队友继续',
+  reserve:r=>r?`备用 ${r}`:'备用 -',rejoining:'即将重新加入',eliminated:'已出局 · 队友继续',
   playerAria:(n,lives,hp,weapon,grenades)=>`玩家 ${n}，生命 ${lives}，护甲 ${hp}，${weapon}，手雷 ${grenades}`,
   weapons:{R:'突击步枪',M:'机枪',S:'散射枪',L:'激光',F:'火焰喷射'},
   score:'得分',time:'时间',kills:'消灭',deaths:'损失',combo:n=>`${n} 连击`,cores:(a,b)=>`核心 ${a}/${b}`,exitOpen:'出口已开启',
@@ -130,15 +131,16 @@ const I18N={
   spokenPlayer:n=>`玩家${n}，`,spokenSep:'。',
   cue:{alignLeft:'向左对齐',alignRight:'向右对齐',prone:'趴下射击',stand:'恢复站射',jump:'跳起射击',jumpRelease:'再跳起射击',stop:'停稳后趴下',releaseLock:'再趴下射击',armor:'装甲正在阻挡 · 继续射击',advance:'电网已解除 · 前进',sealed:'暂时封闭 · 先躲避',dodgeRush:'起跳躲避冲撞',dodgeLeap:'移开落点 · 躲避冲击',prerequisite:'先破坏保护部件',barrier:'先击毁橙色核心'},
   feedback:{damage:'命中',armor:'装甲受损',armorBreak:'装甲击破',destroyed:'已摧毁',sealed:'暂时封闭',prerequisite:'仍受保护'},
-  online:'在线合作',lobbyTitle:'在线小队',lobbyNote:'创建房间并分享代码，或输入代码加入。最多 8 人；中途加入者观战至下一关。',
+  online:'在线合作',lobbyTitle:'在线小队',lobbyNote:'创建房间并分享代码，或输入代码加入。最多 10 人；中途加入者观战至下一关。',
   netHost:'创建房间',netJoin:'加入房间',codeLabel:'房间代码',codePlaceholder:'代码',netStart:'开始任务',netLeave:'离开房间',
-  netConnecting:'连接中…',netWaiting:'大厅等待中',netReady:'已就绪',netSpectator:'观战至下一关',netHostLeft:'房主已离开',
-  netOpen:'房间已开启 · 分享代码',netError:'连接失败。请检查代码后重试。',netNoRoom:'找不到该代码对应的房间。',netP2:'本设备同时操控 P2（本地合作）'
+  netRoster:'小队',netOpenSlot:'空位',netYou:'你',netCopy:'复制链接',netCopied:'已复制',
+  netConnecting:'连接中…',netWaiting:'大厅等待中',netReady:'已就绪',netSpectator:'观战中',netHostLeft:'房主已离开',
+  netOpen:'房间已开启 · 分享代码',netError:'连接失败。请检查代码后重试。',netNoRoom:'找不到该代码对应的房间。',netName:'名字',netP2:'本设备同时操控 P2（本地合作）'
  },
  ja:{
   gameAria:'Eight Fronts 3D キャンペーン。キーボード：A D 移動、Space ジャンプ、J 射撃、Escape ポーズ。',
   loading:'キャンペーンを読み込み中…',reload:'再読み込み',quickActions:'クイック操作',sound:'サウンド',mute:'ミュート',unmute:'ミュート解除',help:'操作ガイド',fullscreen:'フルスクリーン',pause:'ポーズ',
-  mainMenu:'メインメニュー',eyebrow:'全 8 ステージ · ローカル協力プレイ',intro:'突入し、突破し、生きて帰れ。',deploy:'キャンペーン開始',
+  mainMenu:'メインメニュー',eyebrow:'全 8 ステージ · 1-10 人協力プレイ',intro:'突入し、突破し、生きて帰れ。',deploy:'キャンペーン開始',
   continue:'キャンペーン再開',continueAt:n=>`キャンペーン再開 · ステージ ${n} →`,
   squad:'部隊',playersAria:'プレイヤー数',solo:'1 人',coop:'ローカル 2 人',coopHint:'P2：矢印キー移動 · / 射撃 · . ジャンプ',language:'言語',
   selectStages:'ステージ選択 →',settings:'設定',campaignOptions:'キャンペーン設定',controls:'操作',controlScheme:'操作方式',modern:'モダン',retro:'レトロ',
@@ -148,7 +150,7 @@ const I18N={
   deviceHintPortrait:'デスクトップ版 · 横画面でキーボードかゲームパッドをご利用ください',deviceHintTouch:'このバージョンはタッチ操作に対応していません',
   storageNote:'このブラウザでは進行を保存できません。現在のゲームには影響しません。',
   gameStatus:'ゲーム状態',p1Status:'プレイヤー 1 の状態',p2Status:'プレイヤー 2 の状態',armor:'アーマー',armorAria:(hp,max)=>`アーマー ${hp} / ${max}`,grenades:'手榴弾',
-  reserve:r=>r?`予備 ${r}`:'予備 —',rejoining:'まもなく復帰',eliminated:'脱落 · 味方が続行',
+  reserve:r=>r?`予備 ${r}`:'予備 -',rejoining:'まもなく復帰',eliminated:'脱落 · 味方が続行',
   playerAria:(n,lives,hp,weapon,grenades)=>`プレイヤー ${n}、残機 ${lives}、アーマー ${hp}、${weapon}、手榴弾 ${grenades}`,
   weapons:{R:'アサルトライフル',M:'マシンガン',S:'スプレッドガン',L:'レーザー',F:'火炎放射器'},
   score:'スコア',time:'タイム',kills:'撃破',deaths:'ロスト',combo:n=>`${n} コンボ`,cores:(a,b)=>`コア ${a}/${b}`,exitOpen:'出口が開いた',
@@ -195,10 +197,11 @@ const I18N={
   spokenPlayer:n=>`プレイヤー ${n}、`,spokenSep:'。',
   cue:{alignLeft:'左に合わせる',alignRight:'右に合わせる',prone:'伏せて射撃',stand:'立って射撃',jump:'ジャンプ射撃',jumpRelease:'そしてジャンプ射撃',stop:'止まってから伏せる',releaseLock:'そして伏せて射撃',armor:'装甲が防いでいる · 撃ち続けろ',advance:'電網解除 · 前進',sealed:'閉鎖中 · まず回避',dodgeRush:'ジャンプで突進を回避',dodgeLeap:'着地点から離れろ · 衝撃を回避',prerequisite:'先に保護パーツを破壊',barrier:'先にオレンジのコアを破壊'},
   feedback:{damage:'命中',armor:'装甲損傷',armorBreak:'装甲破壊',destroyed:'破壊',sealed:'閉鎖中',prerequisite:'保護中'},
-  online:'オンライン協力',lobbyTitle:'オンライン部隊',lobbyNote:'ルームを作成してコードを共有するか、コードで参加。最大 8 人。途中参加は次のステージまで観戦。',
+  online:'オンライン協力',lobbyTitle:'オンライン部隊',lobbyNote:'ルームを作成してコードを共有するか、コードで参加。最大 10 人。途中参加は次のステージまで観戦。',
   netHost:'ルームを作成',netJoin:'ルームに参加',codeLabel:'ルームコード',codePlaceholder:'コード',netStart:'任務開始',netLeave:'退出',
-  netConnecting:'接続中…',netWaiting:'ロビー待機中',netReady:'準備完了',netSpectator:'次のステージまで観戦',netHostLeft:'ホストが退出しました',
-  netOpen:'ルーム開放 · コードを共有',netError:'接続に失敗しました。コードを確認して再試行してください。',netNoRoom:'そのコードのルームが見つかりません。',netP2:'この端末は P2 も操作（ローカル協力）'
+  netRoster:'分隊',netOpenSlot:'空き',netYou:'あなた',netCopy:'リンクをコピー',netCopied:'コピー済み',
+  netConnecting:'接続中…',netWaiting:'ロビー待機中',netReady:'準備完了',netSpectator:'観戦中',netHostLeft:'ホストが退出しました',
+  netOpen:'ルーム開放 · コードを共有',netError:'接続に失敗しました。コードを確認して再試行してください。',netNoRoom:'そのコードのルームが見つかりません。',netName:'名前',netP2:'この端末は P2 も操作（ローカル協力）'
  }
 };
 const LANG_TAGS={en:'en',zh:'zh-CN',ja:'ja'};
