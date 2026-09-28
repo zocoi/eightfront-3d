@@ -172,7 +172,7 @@ function initApp(){
  const guideView=new CombatGuideView({game:G,guide,renderer:R,binding,device:id=>playerDevices[id-1],level:()=>guideLevel});
  function syncUI(){
   const p=G.player,s=G.stage,saved=saves[playerCount],valid=validSave(saved);
-  $('menu').hidden=G.mode!=='menu';$('hud').hidden=!p||G.mode==='menu';$('pause').hidden=G.mode!=='paused'&&!(onlineMenu&&G.mode==='playing');$('pause').querySelector('.kicker').textContent=onlineMenu?'MENU':'PAUSED';$('result').hidden=!['clear','won','over'].includes(G.mode);$('pauseButton').hidden=!p||G.mode==='menu';
+  $('menu').hidden=G.mode!=='menu';$('hud').hidden=!p||G.mode==='menu';$('pause').hidden=G.mode!=='paused'&&!(onlineMenu&&G.mode==='playing');$('pause').querySelector('.kicker').textContent=onlineMenu?'MENU':'PAUSED';text('pauseTitle',onlineMenu?t('onlineMenuTitle'):t('pauseTitle'));$('pauseOnlineNote').hidden=!onlineMenu;$('result').hidden=!['clear','won','over'].includes(G.mode);$('pauseButton').hidden=!p||G.mode==='menu';
   $('continue').hidden=!valid;text('continue',valid?t('continueAt',saved.stage+1):t('continue'));
   document.body.classList.toggle('coop',G.mode==='menu'?playerCount>1:G.playerCount>1);document.body.classList.toggle('reduced-motion',reducedMotion);
   $('notification').hidden=G.note<=0||!['playing','paused'].includes(G.mode);text('notification',G.message.split(' / ')[0]);
