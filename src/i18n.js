@@ -70,7 +70,7 @@ const I18N={
   online:'Online co-op',lobbyTitle:'Online squad',lobbyNote:'Host a room and share the code, or join with a code. Up to 8 players; joiners spectate until the next stage.',
   netHost:'Host a room',netJoin:'Join room',codeLabel:'Room code',codePlaceholder:'CODE',netStart:'Start mission',netLeave:'Leave room',
   netConnecting:'Connecting…',netWaiting:'Waiting in lobby',netReady:'Ready',netSpectator:'Spectating until next stage',netHostLeft:'Host left the room',
-  netOpen:'Room open · share the code',netError:'Connection failed. Check the code and try again.',netP2:'This device also drives P2 (local co-op)'
+  netOpen:'Room open · share the code',netError:'Connection failed. Check the code and try again.',netNoRoom:'No room found for that code.',netP2:'This device also drives P2 (local co-op)'
  },
  zh:{
   gameAria:'Eight Fronts 三维战役。键盘操作：A D 移动，Space 跳跃，J 射击，Escape 暂停。',
@@ -133,7 +133,7 @@ const I18N={
   online:'在线合作',lobbyTitle:'在线小队',lobbyNote:'创建房间并分享代码，或输入代码加入。最多 8 人；中途加入者观战至下一关。',
   netHost:'创建房间',netJoin:'加入房间',codeLabel:'房间代码',codePlaceholder:'代码',netStart:'开始任务',netLeave:'离开房间',
   netConnecting:'连接中…',netWaiting:'大厅等待中',netReady:'已就绪',netSpectator:'观战至下一关',netHostLeft:'房主已离开',
-  netOpen:'房间已开启 · 分享代码',netError:'连接失败。请检查代码后重试。',netP2:'本设备同时操控 P2（本地合作）'
+  netOpen:'房间已开启 · 分享代码',netError:'连接失败。请检查代码后重试。',netNoRoom:'找不到该代码对应的房间。',netP2:'本设备同时操控 P2（本地合作）'
  },
  ja:{
   gameAria:'Eight Fronts 3D キャンペーン。キーボード：A D 移動、Space ジャンプ、J 射撃、Escape ポーズ。',
@@ -198,7 +198,7 @@ const I18N={
   online:'オンライン協力',lobbyTitle:'オンライン部隊',lobbyNote:'ルームを作成してコードを共有するか、コードで参加。最大 8 人。途中参加は次のステージまで観戦。',
   netHost:'ルームを作成',netJoin:'ルームに参加',codeLabel:'ルームコード',codePlaceholder:'コード',netStart:'任務開始',netLeave:'退出',
   netConnecting:'接続中…',netWaiting:'ロビー待機中',netReady:'準備完了',netSpectator:'次のステージまで観戦',netHostLeft:'ホストが退出しました',
-  netOpen:'ルーム開放 · コードを共有',netError:'接続に失敗しました。コードを確認して再試行してください。',netP2:'この端末は P2 も操作（ローカル協力）'
+  netOpen:'ルーム開放 · コードを共有',netError:'接続に失敗しました。コードを確認して再試行してください。',netNoRoom:'そのコードのルームが見つかりません。',netP2:'この端末は P2 も操作（ローカル協力）'
  }
 };
 const LANG_TAGS={en:'en',zh:'zh-CN',ja:'ja'};

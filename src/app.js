@@ -218,7 +218,7 @@ function initApp(){
  let onlineMode=false;
  function selection(){const v=Number($('players').value);onlineMode=v===3;playerCount=v===2?2:1;inputMode=$('rules').value==='retro'?'retro':'modern';if(G.mode==='menu')G.playerCount=playerCount;text('rulesHint',t(inputMode==='retro'?'rulesRetro':'rulesModern'));$('coopHint').hidden=v!==2;persist();syncUI();}
  $('players').onchange=selection;$('rules').onchange=selection;
- $('deploy').onclick=()=>onlineMode&&typeof NetUI!=='undefined'?NetUI.openLobby({start,game:G,localSlots:playerCount===2?[1,2]:[1],onNet:n=>{net=n;if(!net)$('netStatus').hidden=true;}}):start(0);
+ $('deploy').onclick=()=>onlineMode&&typeof NetUI!=='undefined'?NetUI.openLobby({start,game:G,onNet:n=>{net=n;if(!net)$('netStatus').hidden=true;}}):start(0);
  $('continue').onclick=()=>{const data=saves[playerCount];if(!validSave(data)||!requireDevice())return;AudioFX.init();clearInput();closeAuxiliary();G.restore(data);inputMode=G.inputMode;$('rules').value=inputMode;frames=[];last=0;syncUI();$('game').focus();};
  function buildStageGrid(){$('stageGrid').innerHTML=STAGE_META.map((s,i)=>`<button class="stage-card" data-stage="${i}" style="--stage-accent:${s.accent}" aria-label="${t('stageAria',i+1,t('stages')[i])}">${typeof STAGE_PREVIEWS!=='undefined'&&STAGE_PREVIEWS[i]?`<img src="${STAGE_PREVIEWS[i]}" alt="" loading="lazy">`:'<div class="preview-fallback"></div>'}<span class="stage-caption"><span class="num">${String(i+1).padStart(2,'0')}</span><b>${t('stages')[i]}</b></span></button>`).join('');}
  function applyLanguage(){setLanguage(lang);$('language').value=lang;syncAudioButton();buildStageGrid();cachedHTML.clear();text('learningStatus','');selection();}

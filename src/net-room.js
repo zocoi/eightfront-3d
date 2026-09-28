@@ -80,6 +80,7 @@ class NetGuest{
   this.slots=[];this.spec=false;this.snaps=[];this.lastSerial=0;this.seq=0;
   this.you=null;this.lobbyList=[];
   transport.onmessage((id,msg)=>this.onMsg(msg));
+  transport.onclose?.(id=>{if(id==='host')this.hostGone=true;});
  }
  onMsg(msg){
   if(!msg||typeof msg!=='object')return;
