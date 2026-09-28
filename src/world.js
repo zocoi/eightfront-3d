@@ -428,7 +428,13 @@ const CampaignWorld=(()=>{
   }
   CombatArt.bossStatus(g);
  }
- function draw(g,menu=false){const t=g.t,s=g.stage,p=g.player;if(s.mode==='depth'&&artRoom!==g.room)create(s,g.room);for(const a of g.players||[])a.retroInput=g.inputMode==='retro';R.setCoop(g.playerCount===2);R.setActors(menu?(g.playerCount===2?[{id:1,x:20.8,y:0,z:0,vx:0,face:1,aim:.01,grounded:true},{id:2,x:23.1,y:0,z:0,vx:0,face:1,aim:.12,grounded:true}]:[{id:1,x:21,y:0,z:0,vx:0,face:1,aim:.01,grounded:true}]):[g.players[0],g.players[1],...( [1,2].map(id=>{const c=g.corpses.find(c=>c.hero&&c.id===id);return c?{...c,isCorpse:true}:null;}))],t,s.mode);
+ function draw(g,menu=false){const t=g.t,s=g.stage,p=g.player;if(s.mode==='depth'&&artRoom!==g.room)create(s,g.room);for(const a of g.players||[])a.retroInput=g.inputMode==='retro';
+  const squad=Math.max(1,Math.min(g.playerCount||1,SQUAD_MAX));
+  R.setSquad(menu?Math.min(squad,4):squad);
+  // One commando actor per slot; while a player is out, the slot renders its corpse.
+  const actorOf=i=>{const p=g.players[i];const c=g.corpses.find(c=>c.hero&&c.id===i+1);return c?{...c,isCorpse:true}:p||null;};
+  R.setActors(menu?Array.from({length:Math.min(squad,4)},(_,i)=>({id:i+1,x:20.8+i*2.3,y:0,z:0,vx:0,face:1,aim:.01+.11*i,grounded:true}))
+    :Array.from({length:squad},(_,i)=>actorOf(i)),t,s.mode);
  R.setBoss(!!g.boss?.active,g.stageIndex===4?32:27);R.begin(g.cam,g.camY);
   Environment.draw(g);
   if(menu){Art.drawCapsule({x:25,y:2.3},t);Art.drawAtmosphere(t,g.cam);R.render(g.cam,0,t);return;}

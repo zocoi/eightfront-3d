@@ -5,7 +5,7 @@ function createRenderFacade(backend){
  const meshes=createGeometryLibrary(), staticObjects=[], staticLights=[], lights=[], heat=[], waterContacts=[];
  const foliage=new Set(['palm','leaf','grass','frond','tuft',...Array.from({length:3},(_,i)=>'firBough'+i),...Array.from({length:3},(_,i)=>'firSnow'+i)]);let staticRebuilds=0,lodSkipped=0;
  let staticKey=null,staticBatches=null;
- let motion=false,coop=false,recording=false, parent=null, quality='high',scale=1,view='side',bossMode=false,bossZoom=27, theme={},stats={}, VP=Math3D.id();
+ let motion=false,squadSize=1,recording=false, parent=null, quality='high',scale=1,view='side',bossMode=false,bossZoom=27, theme={},stats={}, VP=Math3D.id();
  for(const [name,b] of Object.entries(meshes)){b.n=0;b.capacity=b.rc8?(/^fir/.test(name)?4096:2048):['bevel','panel'].includes(name)?18000:10000;b.data=new Float32Array(b.capacity*24);backend.register(name,b);}
  function add(type,m,col,emit=0,kind=0,wind=0,alpha=1){
   if(parent)m=mul(parent,m);
@@ -36,7 +36,7 @@ function createRenderFacade(backend){
  function render(cx,cy,t,shake=0,hurt=0,flash=0,depthZ=0){
   const width=Math.max(320,Math.round(innerWidth*Math.min(devicePixelRatio||1,1.5)*scale));
   const height=Math.max(240,Math.round(innerHeight*Math.min(devicePixelRatio||1,1.5)*scale));
-  const zoom=(view==='vertical'?25.5:view==='depth'?22:bossMode?bossZoom:coop?26:21.5)*Math.max(1,(16/9)/(width/height));
+  const zoom=(view==='vertical'?25.5:view==='depth'?22:bossMode?bossZoom:squadSize>1?Math.min(26+(squadSize-2)*1.4,38):21.5)*Math.max(1,(16/9)/(width/height));
   const eye=view==='depth'?[0,bossMode?3.65:3.25,(bossMode?10.5:10.8)+depthZ*.76]:[cx+.6+Math.sin(t*75)*shake*(motion?0:1),4.8+cy,zoom];
   const at=view==='depth'?[0,bossMode?3.20:2.25,-13+depthZ*.76]:[cx,2.6+cy,0];
   const shadowCenter=view==='depth'?[0,0,-8]:[cx,cy,-4];
@@ -60,6 +60,6 @@ function createRenderFacade(backend){
  return{canvas:backend.canvas,backend,meshes,color,matrix,mul,segment,add,box,ball,beam,begin,render,project,aimPoint,norm,cross,clamp,staticObjects,
   waterImpact(x,y,z,r){if(waterContacts.length<16&&[x,y,z,r].every(Number.isFinite))waterContacts.push({x,y,z,r});},
   light(x,y,z,color,intensity=1,radius=5,priority=1,pulse=false){if(parent){const m=mul(parent,matrix(x,y,z,1,1,1));x=m[12];y=m[13];z=m[14];}const list=recording?staticLights:lights;if(list.length<(recording?512:96)&&[x,y,z,intensity,radius].every(Number.isFinite))list.push({x,y,z,color,intensity:motion&&priority>=2?intensity*.45:intensity,radius,priority,pulse});},heat(x,y,z,radius=1){if(heat.length<4&&[x,y,z,radius].every(Number.isFinite))heat.push({x,y,z,radius});},
-  setActors(list,t,view){backend.setActors(list,t,view);},setMotion(v){motion=!!v;},setCoop(v){coop=!!v;},record(v){recording=v;staticKey=null;},clear(){staticObjects.length=0;staticLights.length=0;waterContacts.length=0;staticKey=null;staticBatches=null;},setView(v){view=v;bossMode=false;},setBoss(v,z=27){bossMode=!!v;bossZoom=z;},setTheme(t){theme=t;},setQuality(q){quality=['low','high','ultra'].includes(q)?q:'high';},setScale(s){scale=clamp(s,.4,1.25);},
+  setActors(list,t,view){backend.setActors(list,t,view);},setMotion(v){motion=!!v;},setCoop(v){squadSize=v?2:1;},setSquad(n){squadSize=Math.max(1,Math.min(10,n||1));},record(v){recording=v;staticKey=null;},clear(){staticObjects.length=0;staticLights.length=0;waterContacts.length=0;staticKey=null;staticBatches=null;},setView(v){view=v;bossMode=false;},setBoss(v,z=27){bossMode=!!v;bossZoom=z;},setTheme(t){theme=t;},setQuality(q){quality=['low','high','ultra'].includes(q)?q:'high';},setScale(s){scale=clamp(s,.4,1.25);},
   transform(m,fn){const old=parent;parent=old?mul(old,m):m;try{fn();}finally{parent=old;}},get stats(){return stats;},get device(){return backend.device;}};
 }

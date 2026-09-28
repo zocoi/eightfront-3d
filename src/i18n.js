@@ -48,7 +48,7 @@ const I18N={
   padBindings:{left:'Left stick ←',right:'Left stick →',up:'Stick ↑',down:'Stick ↓'},
   stages:['Jungle Assault','Base 1','Waterfall Climb','Base 2','Snow Field','Energy Zone','Hangar','Alien\'s Lair'],
   coreExposed:'CORE EXPOSED',partsDown:'PARTS DOWN · wait for the core',
-  stageClear:'STAGE CLEAR',missionComplete:'MISSION COMPLETE',relayActive:'RELAY ACTIVE',reinserted:n=>`P${n} REINSERTED`,
+  stageClear:'STAGE CLEAR',missionComplete:'MISSION COMPLETE',relayActive:'RELAY ACTIVE',reinserted:n=>`${n} REINSERTED`,
   bossDestroyed:'Target destroyed',bossParts:{1:'locks',2:'arms',4:'engines',6:'gate locks',7:'sacs'},bossPartsDefault:'parts',
   robot:{windup:'Wind-up · core open',rush:'Rush · jump to dodge',leap:'Leap · clear the landing',recover:'Recovering · attack window'},
   attackOpenCore:'Attack the open core',coreOpenText:'Core exposed · attack',goalCentral:'Attack the central core directly; turrets are optional',
@@ -66,7 +66,11 @@ const I18N={
   tap:'Tap',hold:'Hold',fireCue:f=>`${f} to fire`,release:k=>`Release ${k}`,releaseMove:'Release left/right',currentObjective:'Current objective',target:'Target',
   spokenPlayer:n=>`Player ${n}, `,spokenSep:'. ',
   cue:{alignLeft:'Align left',alignRight:'Align right',prone:'Fire prone',stand:'Fire standing',jump:'Fire jumping',jumpRelease:'then jump and fire',stop:'Stop, then go prone',releaseLock:'then fire prone',armor:'Armor blocking · keep firing',advance:'Grid down · advance',sealed:'Sealed · dodge for now',dodgeRush:'Jump over the rush',dodgeLeap:'Clear the landing · dodge the slam',prerequisite:'Break the protective parts first',barrier:'Destroy the orange core first'},
-  feedback:{damage:'Hit',armor:'Armor damaged',armorBreak:'Armor broken',destroyed:'Destroyed',sealed:'Sealed',prerequisite:'Still protected'}
+  feedback:{damage:'Hit',armor:'Armor damaged',armorBreak:'Armor broken',destroyed:'Destroyed',sealed:'Sealed',prerequisite:'Still protected'},
+  online:'Online co-op',lobbyTitle:'Online squad',lobbyNote:'Host a room and share the code, or join with a code. Up to 8 players; joiners spectate until the next stage.',
+  netHost:'Host a room',netJoin:'Join room',codeLabel:'Room code',codePlaceholder:'CODE',netStart:'Start mission',netLeave:'Leave room',
+  netConnecting:'Connecting…',netWaiting:'Waiting in lobby',netReady:'Ready',netSpectator:'Spectating until next stage',netHostLeft:'Host left the room',
+  netOpen:'Room open · share the code',netError:'Connection failed. Check the code and try again.',netP2:'This device also drives P2 (local co-op)'
  },
  zh:{
   gameAria:'Eight Fronts 三维战役。键盘操作：A D 移动，Space 跳跃，J 射击，Escape 暂停。',
@@ -110,7 +114,7 @@ const I18N={
   padBindings:{left:'左摇杆 ←',right:'左摇杆 →',up:'摇杆 ↑',down:'摇杆 ↓'},
   stages:['丛林突入','第一基地','瀑布攀登','第二基地','雪原突破','能源地带','机库压制','异形巢穴'],
   coreExposed:'核心暴露',partsDown:'部件已破坏 · 等待核心开启',
-  stageClear:'区域已夺回',missionComplete:'岛屿已解放',relayActive:'复活点已激活',reinserted:n=>`P${n} 重新入场`,
+  stageClear:'区域已夺回',missionComplete:'岛屿已解放',relayActive:'复活点已激活',reinserted:n=>`${n} 重新入场`,
   bossDestroyed:'目标已摧毁',bossParts:{1:'锁点',2:'双臂',4:'引擎',6:'门锁',7:'孢囊'},bossPartsDefault:'部件',
   robot:{windup:'蓄力 · 核心可攻击',rush:'冲撞 · 起跳躲避',leap:'跃击 · 避开落点',recover:'恢复 · 攻击窗口'},
   attackOpenCore:'攻击开启的核心',coreOpenText:'核心暴露 · 可以攻击',goalCentral:'可直接攻击中央核心；炮台可选',
@@ -125,7 +129,11 @@ const I18N={
   tap:'点按',hold:'按住',fireCue:f=>`${f}射击`,release:k=>`松开 ${k}`,releaseMove:'松开左右移动',currentObjective:'当前目标',target:'目标',
   spokenPlayer:n=>`玩家${n}，`,spokenSep:'。',
   cue:{alignLeft:'向左对齐',alignRight:'向右对齐',prone:'趴下射击',stand:'恢复站射',jump:'跳起射击',jumpRelease:'再跳起射击',stop:'停稳后趴下',releaseLock:'再趴下射击',armor:'装甲正在阻挡 · 继续射击',advance:'电网已解除 · 前进',sealed:'暂时封闭 · 先躲避',dodgeRush:'起跳躲避冲撞',dodgeLeap:'移开落点 · 躲避冲击',prerequisite:'先破坏保护部件',barrier:'先击毁橙色核心'},
-  feedback:{damage:'命中',armor:'装甲受损',armorBreak:'装甲击破',destroyed:'已摧毁',sealed:'暂时封闭',prerequisite:'仍受保护'}
+  feedback:{damage:'命中',armor:'装甲受损',armorBreak:'装甲击破',destroyed:'已摧毁',sealed:'暂时封闭',prerequisite:'仍受保护'},
+  online:'在线合作',lobbyTitle:'在线小队',lobbyNote:'创建房间并分享代码，或输入代码加入。最多 8 人；中途加入者观战至下一关。',
+  netHost:'创建房间',netJoin:'加入房间',codeLabel:'房间代码',codePlaceholder:'代码',netStart:'开始任务',netLeave:'离开房间',
+  netConnecting:'连接中…',netWaiting:'大厅等待中',netReady:'已就绪',netSpectator:'观战至下一关',netHostLeft:'房主已离开',
+  netOpen:'房间已开启 · 分享代码',netError:'连接失败。请检查代码后重试。',netP2:'本设备同时操控 P2（本地合作）'
  },
  ja:{
   gameAria:'Eight Fronts 3D キャンペーン。キーボード：A D 移動、Space ジャンプ、J 射撃、Escape ポーズ。',
@@ -171,7 +179,7 @@ const I18N={
   padBindings:{left:'左スティック ←',right:'左スティック →',up:'スティック ↑',down:'スティック ↓'},
   stages:['ジャングル突入','第一基地','滝の登攀','第二基地','雪原突破','エネルギー地帯','格納庫制圧','エイリアンの巣'],
   coreExposed:'コア露出',partsDown:'パーツ破壊 · コア開放を待て',
-  stageClear:'ステージクリア',missionComplete:'ミッション完了',relayActive:'チェックポイント確保',reinserted:n=>`P${n} 再出撃`,
+  stageClear:'ステージクリア',missionComplete:'ミッション完了',relayActive:'チェックポイント確保',reinserted:n=>`${n} 再出撃`,
   bossDestroyed:'目標を破壊',bossParts:{1:'ロック',2:'両腕',4:'エンジン',6:'ゲートロック',7:'卵嚢'},bossPartsDefault:'パーツ',
   robot:{windup:'溜め · コア攻撃可能',rush:'突進 · ジャンプで回避',leap:'跳躍 · 着地点から離れろ',recover:'回復中 · 攻撃チャンス'},
   attackOpenCore:'開いたコアを攻撃',coreOpenText:'コア露出 · 攻撃可能',goalCentral:'中央コアを直接攻撃。砲台は任意',
@@ -186,7 +194,11 @@ const I18N={
   tap:'連打',hold:'長押し',fireCue:f=>`${f}で射撃`,release:k=>`${k} を離す`,releaseMove:'左右移動を離す',currentObjective:'現在の目標',target:'目標',
   spokenPlayer:n=>`プレイヤー ${n}、`,spokenSep:'。',
   cue:{alignLeft:'左に合わせる',alignRight:'右に合わせる',prone:'伏せて射撃',stand:'立って射撃',jump:'ジャンプ射撃',jumpRelease:'そしてジャンプ射撃',stop:'止まってから伏せる',releaseLock:'そして伏せて射撃',armor:'装甲が防いでいる · 撃ち続けろ',advance:'電網解除 · 前進',sealed:'閉鎖中 · まず回避',dodgeRush:'ジャンプで突進を回避',dodgeLeap:'着地点から離れろ · 衝撃を回避',prerequisite:'先に保護パーツを破壊',barrier:'先にオレンジのコアを破壊'},
-  feedback:{damage:'命中',armor:'装甲損傷',armorBreak:'装甲破壊',destroyed:'破壊',sealed:'閉鎖中',prerequisite:'保護中'}
+  feedback:{damage:'命中',armor:'装甲損傷',armorBreak:'装甲破壊',destroyed:'破壊',sealed:'閉鎖中',prerequisite:'保護中'},
+  online:'オンライン協力',lobbyTitle:'オンライン部隊',lobbyNote:'ルームを作成してコードを共有するか、コードで参加。最大 8 人。途中参加は次のステージまで観戦。',
+  netHost:'ルームを作成',netJoin:'ルームに参加',codeLabel:'ルームコード',codePlaceholder:'コード',netStart:'任務開始',netLeave:'退出',
+  netConnecting:'接続中…',netWaiting:'ロビー待機中',netReady:'準備完了',netSpectator:'次のステージまで観戦',netHostLeft:'ホストが退出しました',
+  netOpen:'ルーム開放 · コードを共有',netError:'接続に失敗しました。コードを確認して再試行してください。',netP2:'この端末は P2 も操作（ローカル協力）'
  }
 };
 const LANG_TAGS={en:'en',zh:'zh-CN',ja:'ja'};

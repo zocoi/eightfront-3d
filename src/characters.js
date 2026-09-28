@@ -108,17 +108,19 @@ function createCommandoSystem(T, shared){
  vec3 c=aColor;if(aRegion>.5&&aRegion<1.5)c=uBand;else if(aRegion>1.5&&aRegion<2.5)c=uPants;else if(aRegion>2.5)c=uVest;
  vColor=vec4(c,0.);vParams=vec4(aSurface,uInv,1.,1.);vUV=uv;vShadow=uLight*w;gl_Position=uVP*w;}`;
  function makeActor(index){const bones=bind.map(p=>{const b=new T.Bone();b.position.fromArray(p);return b;}),root=new T.Group();bones.forEach(b=>root.add(b));root.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);skeleton.calculateInverses();
-  const u={...shared,uBones:{value:Array.from({length:18},()=>new T.Matrix4())},uModel:{value:new T.Matrix4()},uInv:{value:0},uBand:{value:v3(linear(index%2?'#e8432c':'#42c3e5'))},uPants:{value:v3(linear(index%2?'#4a2d33':'#364c59'))},uVest:{value:v3(linear(index%2?'#9b7050':'#78857a'))}};
+  const kit=squadIdentity(index+1);
+  const u={...shared,uBones:{value:Array.from({length:18},()=>new T.Matrix4())},uModel:{value:new T.Matrix4()},uInv:{value:0},uBand:{value:v3(linear(kit.band))},uPants:{value:v3(linear(kit.pants))},uVest:{value:v3(linear(kit.vest))}};
   const opts={vertexShader:vertex,glslVersion:T.GLSL3,uniforms:u,side:T.FrontSide,toneMapped:false};const mat=new T.RawShaderMaterial({...opts,fragmentShader:Shaders.fragment.replace(/^#version[^\n]+\n/,'')}),depth=new T.RawShaderMaterial({...opts,fragmentShader:Shaders.depth.replace(/^#version[^\n]+\n/,'')});
   const mesh=new T.SkinnedMesh(geometry,mat);mesh.bind(skeleton,new T.Matrix4());mesh.frustumCulled=false;mesh.visible=false;mesh.name='Commando P'+(index+1);scene.add(mesh);return{mesh,bones,root,skeleton,u,mat,depth};
  }
- const actors=[makeActor(0),makeActor(1),makeActor(2),makeActor(3)];let pending=[],mode='side',clock=0;
+ // One actor per squad slot; a corpse substitutes for its slot while the body is out.
+ const actors=Array.from({length:SQUAD_MAX},(_,i)=>makeActor(i));let pending=[],mode='side',clock=0;
  const down=new T.Vector3(0,-1,0),axis=new T.Vector3(0,0,1);
  function bonePose(actor,id,p,q=null,scale=null){const b=actor.bones[id];b.position.fromArray(p);b.quaternion.copy(q||new T.Quaternion());b.scale.set(1,1,1);if(scale)b.scale.fromArray(scale);}
  function limb(actor,id,a,b,len){const d=v3(b).sub(v3(a)),q=new T.Quaternion().setFromUnitVectors(down,d.clone().normalize());bonePose(actor,id,a,q,[1,d.length()/len,1]);}
  function ik(a,b,l1,l2,bend=[1,0,0]){const A=v3(a),d=v3(b).sub(A),len=Math.max(.001,Math.min(d.length(),l1+l2-.002));d.normalize();const pref=v3(bend).addScaledVector(d,-v3(bend).dot(d)).normalize(),along=(len*len+l1*l1-l2*l2)/(2*len),high=Math.sqrt(Math.max(0,l1*l1-along*along));return A.addScaledVector(d,along).addScaledVector(pref,high).toArray();}
  function updatePose(actor,p,t){
-  const duck=!!p.duck,air=!p.grounded,run=Math.hypot(p.vx||0,p.vz||0)>.3,phase=(p.gaitDistance||0)*4.1+(actor===actors[1]?.6:0),bob=run&&!air?Math.abs(Math.sin(phase))*.025:0;
+  const duck=!!p.duck,air=!p.grounded,run=Math.hypot(p.vx||0,p.vz||0)>.3,phase=(p.gaitDistance||0)*4.1+actors.indexOf(actor)*.3,bob=run&&!air?Math.abs(Math.sin(phase))*.025:0;
   for(let i=0;i<18;i++)bonePose(actor,i,bind[i]);
   let yaw=p.face<0?Math.PI:0,pitch=p.aim||0;
   if(mode==='depth'){const d=p.aimDirection||[0,0,-1];yaw=Math.atan2(-d[2],d[0]);pitch=Math.atan2(d[1],Math.hypot(d[0],d[2]));}else pitch=Math.atan2(Math.sin(pitch),Math.cos(pitch)*(p.face<0?-1:1));
@@ -140,5 +142,5 @@ function createCommandoSystem(T, shared){
   const headDelta=v3(head).sub(v3(bind[2]));bonePose(actor,16,v3(bind[16]).add(headDelta).toArray(),new T.Quaternion().setFromAxisAngle(axis,Math.sin(t*10)*.14));bonePose(actor,17,v3(bind[17]).add(headDelta).toArray(),new T.Quaternion().setFromAxisAngle(axis,Math.sin(t*10-1)*.2));
   actor.root.updateMatrixWorld(true);actor.skeleton.update();for(let i=0;i<18;i++)actor.u.uBones.value[i].fromArray(actor.skeleton.boneMatrices,i*16);
  }
- return{scene,geometry,geometries,actors,set(list,t,view){pending=list||[];clock=t;mode=view;},update(){for(let i=0;i<4;i++){const a=actors[i],p=pending[i];a.mesh.visible=!!p&&(!p.dead||p.isCorpse)&&!(p.retroInput&&!p.isCorpse&&p.inv>0&&Math.floor(clock*15)%2===0);if(a.mesh.visible){a.mesh.geometry=geometries[p.weapon]||geometry;a.u.uInv.value=p.inv>0?(.55+.45*Math.sin(clock*10)):0;updatePose(a,p,clock);}}},depth(on){for(const a of actors)a.mesh.material=on?a.depth:a.mat;},get stats(){return{skinnedActors:actors.filter(a=>a.mesh.visible).length,characterTriangles:Math.max(...Object.values(geometries).map(g=>g.attributes.position.count/3)),bonesPerActor:18};}};
+ return{scene,geometry,geometries,actors,set(list,t,view){pending=list||[];clock=t;mode=view;},update(){for(let i=0;i<actors.length;i++){const a=actors[i],p=pending[i];a.mesh.visible=!!p&&(!p.dead||p.isCorpse)&&!(p.retroInput&&!p.isCorpse&&p.inv>0&&Math.floor(clock*15)%2===0);if(a.mesh.visible){a.mesh.geometry=geometries[p.weapon]||geometry;a.u.uInv.value=p.inv>0?(.55+.45*Math.sin(clock*10)):0;updatePose(a,p,clock);}}},depth(on){for(const a of actors)a.mesh.material=on?a.depth:a.mat;},get stats(){return{skinnedActors:actors.filter(a=>a.mesh.visible).length,characterTriangles:Math.max(...Object.values(geometries).map(g=>g.attributes.position.count/3)),bonesPerActor:18};}};
 }
