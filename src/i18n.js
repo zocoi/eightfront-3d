@@ -67,9 +67,10 @@ const I18N={
   spokenPlayer:n=>`Player ${n}, `,spokenSep:'. ',
   cue:{alignLeft:'Align left',alignRight:'Align right',prone:'Fire prone',stand:'Fire standing',jump:'Fire jumping',jumpRelease:'then jump and fire',stop:'Stop, then go prone',releaseLock:'then fire prone',armor:'Armor blocking · keep firing',advance:'Grid down · advance',sealed:'Sealed · dodge for now',dodgeRush:'Jump over the rush',dodgeLeap:'Clear the landing · dodge the slam',prerequisite:'Break the protective parts first',barrier:'Destroy the orange core first'},
   feedback:{damage:'Hit',armor:'Armor damaged',armorBreak:'Armor broken',destroyed:'Destroyed',sealed:'Sealed',prerequisite:'Still protected'},
-  online:'Online co-op',lobbyTitle:'Online squad',lobbyNote:'Host a room and share the code, or join with a code. Up to 8 players; joiners spectate until the next stage.',
+  online:'Online co-op',lobbyTitle:'Online squad',lobbyNote:'Host a room and share the code, or join with a code. Up to 10 players; joiners spectate until the next stage.',
   netHost:'Host a room',netJoin:'Join room',codeLabel:'Room code',codePlaceholder:'CODE',netStart:'Start mission',netLeave:'Leave room',
-  netConnecting:'Connecting…',netWaiting:'Waiting in lobby',netReady:'Ready',netSpectator:'Spectating until next stage',netHostLeft:'Host left the room',
+  netRoster:'Squad',netOpenSlot:'Open',netYou:'You',netCopy:'Copy link',netCopied:'Copied',
+  netConnecting:'Connecting…',netWaiting:'Waiting in lobby',netReady:'Ready',netSpectator:'Spectating',netHostLeft:'Host left the room',
   netOpen:'Room open · share the code',netError:'Connection failed. Check the code and try again.',netNoRoom:'No room found for that code.',netName:'Name',netP2:'This device also drives P2 (local co-op)'
  },
  zh:{
@@ -130,9 +131,10 @@ const I18N={
   spokenPlayer:n=>`玩家${n}，`,spokenSep:'。',
   cue:{alignLeft:'向左对齐',alignRight:'向右对齐',prone:'趴下射击',stand:'恢复站射',jump:'跳起射击',jumpRelease:'再跳起射击',stop:'停稳后趴下',releaseLock:'再趴下射击',armor:'装甲正在阻挡 · 继续射击',advance:'电网已解除 · 前进',sealed:'暂时封闭 · 先躲避',dodgeRush:'起跳躲避冲撞',dodgeLeap:'移开落点 · 躲避冲击',prerequisite:'先破坏保护部件',barrier:'先击毁橙色核心'},
   feedback:{damage:'命中',armor:'装甲受损',armorBreak:'装甲击破',destroyed:'已摧毁',sealed:'暂时封闭',prerequisite:'仍受保护'},
-  online:'在线合作',lobbyTitle:'在线小队',lobbyNote:'创建房间并分享代码，或输入代码加入。最多 8 人；中途加入者观战至下一关。',
+  online:'在线合作',lobbyTitle:'在线小队',lobbyNote:'创建房间并分享代码，或输入代码加入。最多 10 人；中途加入者观战至下一关。',
   netHost:'创建房间',netJoin:'加入房间',codeLabel:'房间代码',codePlaceholder:'代码',netStart:'开始任务',netLeave:'离开房间',
-  netConnecting:'连接中…',netWaiting:'大厅等待中',netReady:'已就绪',netSpectator:'观战至下一关',netHostLeft:'房主已离开',
+  netRoster:'小队',netOpenSlot:'空位',netYou:'你',netCopy:'复制链接',netCopied:'已复制',
+  netConnecting:'连接中…',netWaiting:'大厅等待中',netReady:'已就绪',netSpectator:'观战中',netHostLeft:'房主已离开',
   netOpen:'房间已开启 · 分享代码',netError:'连接失败。请检查代码后重试。',netNoRoom:'找不到该代码对应的房间。',netName:'名字',netP2:'本设备同时操控 P2（本地合作）'
  },
  ja:{
@@ -195,9 +197,10 @@ const I18N={
   spokenPlayer:n=>`プレイヤー ${n}、`,spokenSep:'。',
   cue:{alignLeft:'左に合わせる',alignRight:'右に合わせる',prone:'伏せて射撃',stand:'立って射撃',jump:'ジャンプ射撃',jumpRelease:'そしてジャンプ射撃',stop:'止まってから伏せる',releaseLock:'そして伏せて射撃',armor:'装甲が防いでいる · 撃ち続けろ',advance:'電網解除 · 前進',sealed:'閉鎖中 · まず回避',dodgeRush:'ジャンプで突進を回避',dodgeLeap:'着地点から離れろ · 衝撃を回避',prerequisite:'先に保護パーツを破壊',barrier:'先にオレンジのコアを破壊'},
   feedback:{damage:'命中',armor:'装甲損傷',armorBreak:'装甲破壊',destroyed:'破壊',sealed:'閉鎖中',prerequisite:'保護中'},
-  online:'オンライン協力',lobbyTitle:'オンライン部隊',lobbyNote:'ルームを作成してコードを共有するか、コードで参加。最大 8 人。途中参加は次のステージまで観戦。',
+  online:'オンライン協力',lobbyTitle:'オンライン部隊',lobbyNote:'ルームを作成してコードを共有するか、コードで参加。最大 10 人。途中参加は次のステージまで観戦。',
   netHost:'ルームを作成',netJoin:'ルームに参加',codeLabel:'ルームコード',codePlaceholder:'コード',netStart:'任務開始',netLeave:'退出',
-  netConnecting:'接続中…',netWaiting:'ロビー待機中',netReady:'準備完了',netSpectator:'次のステージまで観戦',netHostLeft:'ホストが退出しました',
+  netRoster:'分隊',netOpenSlot:'空き',netYou:'あなた',netCopy:'リンクをコピー',netCopied:'コピー済み',
+  netConnecting:'接続中…',netWaiting:'ロビー待機中',netReady:'準備完了',netSpectator:'観戦中',netHostLeft:'ホストが退出しました',
   netOpen:'ルーム開放 · コードを共有',netError:'接続に失敗しました。コードを確認して再試行してください。',netNoRoom:'そのコードのルームが見つかりません。',netName:'名前',netP2:'この端末は P2 も操作（ローカル協力）'
  }
 };

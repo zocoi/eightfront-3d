@@ -7,36 +7,56 @@ const NetUI={
  openLobby(deps){
   this.deps=deps;this.closeNet();
   const shade=this.el('section','shade','',document.body);shade.id='lobby';this.panel=shade;
-  const panel=this.el('div','panel','',shade);
-  this.el('div','kicker','ONLINE',panel);this.el('h2','',t('lobbyTitle'),panel);
+  const panel=this.el('div','panel lobby-panel','',shade);
+  this.el('div','kicker','ONLINE CO-OP',panel);this.el('h2','',t('lobbyTitle'),panel);
   this.el('p','',t('lobbyNote'),panel);
-  const nameRow=this.el('div','panel-row','',panel);
-  this.el('span','settings-note',t('netName'),nameRow);
-  const nameIn=this.el('input','','',nameRow);nameIn.maxLength=12;nameIn.placeholder=defaultName(1);nameIn.style.cssText='width:130px;font:700 13px "Courier New"';
+  const cf=this.el('label','call-field','',panel);
+  this.el('span','',t('netName'),cf);
+  const nameIn=this.el('input','','',cf);nameIn.maxLength=12;nameIn.placeholder=defaultName(1);
   try{nameIn.value=localStorage.getItem('ef3-name')||''}catch{}
-  const row=this.el('div','panel-row','',panel);
+  const row=this.el('div','lobby-actions','',panel);
   const hostBtn=this.el('button','secondary',t('netHost'),row);
-  const codeIn=this.el('input','','',row);codeIn.placeholder=t('codePlaceholder');codeIn.maxLength=6;codeIn.style.cssText='width:90px;text-transform:uppercase;font:700 15px "Courier New"';
-  const joinBtn=this.el('button','secondary',t('netJoin'),row);
-  const p2=this.el('label','','',panel);p2.style.cssText='display:flex;gap:8px;align-items:center;margin-top:14px;font-size:12px;color:#b7cbce';
+  const jc=this.el('div','join-cluster','',row);
+  const codeIn=this.el('input','','',jc);codeIn.placeholder=t('codePlaceholder');codeIn.maxLength=6;
+  const joinBtn=this.el('button','secondary',t('netJoin'),jc);
+  const p2=this.el('label','p2-row','',panel);
   const p2box=this.el('input','','',p2);p2box.type='checkbox';this.el('span','',t('netP2'),p2);
+  const codeRow=this.el('div','room-code','',panel);codeRow.hidden=true;
+  this.el('span','',t('codeLabel'),codeRow);
+  const codeOut=this.el('b','','',codeRow);
+  const copyBtn=this.el('button','quiet',t('netCopy'),codeRow);
+  copyBtn.onclick=()=>{const done=()=>{copyBtn.textContent=t('netCopied');setTimeout(()=>{copyBtn.textContent=t('netCopy')},1400);};try{navigator.clipboard.writeText(location.href).then(done,done)}catch{done()}};
   const status=this.el('p','settings-note',t('netWaiting'),panel);
-  const list=this.el('div','','',panel);list.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
+  const rosterHead=this.el('div','roster-label','',panel);
+  this.el('span','',t('netRoster'),rosterHead);
+  const rosterCount=this.el('b','','0 / 10',rosterHead);
+  const roster=this.el('div','roster-grid','',panel);
   const startBtn=this.el('button','primary',t('netStart'),panel);startBtn.hidden=true;
-  const codeOut=this.el('p','','',panel);codeOut.style.cssText='font:700 18px "Courier New";letter-spacing:3px;color:var(--gold)';
   const leaveBtn=this.el('button','quiet',t('netLeave'),panel);
   // hide dismisses the overlay but keeps the room alive; leave tears it down
   // (and drops the #CODE deep-link).
   const hide=()=>shade.remove();
   const leave=()=>{this.closeNet();shade.remove();try{history.replaceState(null,'',location.pathname+location.search);}catch{}};
+  // Full 10-slot board: filled slots carry the member's palette + name,
+  // open slots preview the callsign the next joiner would take.
   const renderList=players=>{
-   list.replaceChildren();
-   for(const m of players)for(const s of m.slots){
-    const kit=squadIdentity(s+1),chip=this.el('div','','',list);
-    chip.style.cssText=`border:1px solid #a1bdc33b;border-top:2px solid ${kit.accent};border-radius:5px;padding:6px 10px;font:700 11px "Courier New";color:${kit.accent}`;
-    chip.textContent=`P${s+1} ${m.name||kit.call}${m.host?' ◆':''}${m.spec?' · '+t('netSpectator'):''}`;
+   roster.replaceChildren();
+   const n=this.net,mine=new Set(n?(n.slots||n.localSlots||[]):[]);
+   const owner={};let filled=0;
+   for(const m of players)for(const s of m.slots)owner[s]=m;
+   for(let s=0;s<10;s++){
+    const kit=squadIdentity(s+1),m=owner[s];
+    const cell=this.el('div','slot'+(m?'':' open')+(m&&mine.has(s)?' me':''),'',roster);
+    cell.style.setProperty('--slot',kit.accent);
+    this.el('b','',`P${s+1} · ${m?(m.name||kit.call):kit.call}`,cell);
+    const tags=[];
+    if(!m)tags.push(t('netOpenSlot'));
+    else{filled++;if(m.host)tags.push('HOST');if(mine.has(s))tags.push(t('netYou'));if(m.spec)tags.push(t('netSpectator'));}
+    if(tags.length)this.el('small','',tags.join(' / '),cell);
    }
+   rosterCount.textContent=`${filled} / 10`;
   };
+  renderList([]);
   // Editable callsign: sent on join, live-renames via {k:'name'} after.
   const rename=()=>{const v=nameIn.value.trim();try{localStorage.setItem('ef3-name',v)}catch{}
    const n=this.net;if(!n)return;
@@ -56,7 +76,7 @@ const NetUI={
    const tryHost=()=>{
     const code=netCode();
     const tp=openTransport(code,true,{
-     onReady:()=>{codeOut.textContent=code;status.textContent=t('netOpen');try{history.replaceState(null,'','#'+code);}catch{}},
+     onReady:()=>{codeOut.textContent=code;codeRow.hidden=false;status.textContent=t('netOpen');try{history.replaceState(null,'','#'+code);}catch{}},
      // Someone else claimed this id on the public cloud — draw a fresh code.
      onError:e=>{tp.close();this.net=null;deps.onNet?.(null);
       if(e?.type==='unavailable-id'&&++attempts<5)tryHost();
