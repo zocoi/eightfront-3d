@@ -35,7 +35,7 @@ class PeerTransport{
  // Room id on the public PeerJS cloud is ef3-<CODE>. Guests connect to it
  // directly; the host accepts connections. ?peer=host:port overrides the
  // signaling server for local development (e.g. peer=localhost:9000).
- constructor(code,host,{onReady=()=>{},onError=()=>{}}={}){
+ constructor(code,host,{onReady=()=>{},onError=()=>{},timeout=15000}={}){
   this.host=host;this.id=host?'host':null;this.conns=new Map();this.closed=false;
   this.msgFn=()=>{};this.closeFn=()=>{};this.ready=false;
   const opt={debug:0};
@@ -44,9 +44,10 @@ class PeerTransport{
   let peer;
   try{peer=this.peer=new Peer(host?'ef3-'+code:undefined,opt);}
   catch(e){onError(e);return;}
-  // 15 s to claim/register an id (host) or open the data channel (guest),
-  // matching the pacing pac-hunt uses before declaring the room unreachable.
-  this.timer=setTimeout(()=>{if(!this.ready){this.ready=true;onError({type:'timeout'});this.close();}},15000);
+  // Default 15 s to claim/register an id (host) or open the data channel
+  // (guest), matching the pacing pac-hunt uses before declaring the room
+  // unreachable. Override via the timeout option if needed.
+  this.timer=setTimeout(()=>{if(!this.ready){this.ready=true;onError({type:'timeout'});this.close();}},timeout);
   const ready=()=>{if(this.ready||this.closed)return;this.ready=true;clearTimeout(this.timer);onReady();};
   // Signaling hiccups shouldn't kill an established game — reconnect like
   // pac-hunt does instead of tearing the room down.

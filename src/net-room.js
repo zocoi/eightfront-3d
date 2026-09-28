@@ -80,7 +80,7 @@ class NetGuest{
   this.slots=[];this.spec=false;this.snaps=[];this.lastSerial=0;this.seq=0;
   this.you=null;this.lobbyList=[];
   transport.onmessage((id,msg)=>this.onMsg(msg));
-  transport.onclose?.(id=>{if(id==='host')this.hostGone=true;});
+  transport.onclose?.(id=>{if(id==='host')this.goneHost();});
  }
  onMsg(msg){
   if(!msg||typeof msg!=='object')return;
@@ -89,15 +89,17 @@ class NetGuest{
   else if(msg.k==='start')this.onStart?.(msg);
   else if(msg.k==='stage')this.onStage?.(msg);
   else if(msg.k==='snap')this.pushSnap(msg);
-  else if(msg.k==='bye'||msg.k==='hostBye'){this.hostGone=true;}
+  else if(msg.k==='bye'||msg.k==='hostBye')this.goneHost();
   else if(msg.k==='left'){/* roster refresh arrives via lobby */}
  }
+ goneHost(){if(this.hostGone)return;this.hostGone=true;this.onHostGone?.();}
  join(name='',local=1){this.t.send('host',{k:'hi',v:NET_VERSION,name,local});}
  // Remote-input path is empty for guests: non-owned slots get {}.
  localIndex(slot){const i=this.slots.indexOf(slot);return i<0?null:i;}
  owns(slot){return this.slots.includes(slot);}
  pushSnap(snap){
   snap.at=performance.now();this.snaps.push(snap);if(this.snaps.length>4)this.snaps.shift();
+  this.onSnap?.(snap);
   const g=this.g;
   // Mid-stage joiners never saw 'start': build the puppet stage on first snap.
   if(g.mode==='menu'||g.stageIndex!==snap.stage||g.playerCount!==snap.n){

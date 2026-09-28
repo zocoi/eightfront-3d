@@ -65,10 +65,12 @@ const NetUI={
     onReady:()=>{
      const guest=new NetGuest({game:deps.game,transport:tp,onSound:k=>AudioFX.play(k),onLobby:renderList});
      this.net=guest;deps.onNet?.(guest);
-     guest.onStart=msg=>{guest.df=msg.difficulty;guest.im=msg.inputMode;begin(msg.stage??0,msg.n,msg.players,{difficulty:msg.difficulty,inputMode:msg.inputMode});};
-     guest.onStage=msg=>{deps.start(msg.stage,{playerCount:msg.n,online:true,difficulty:guest.df||document.getElementById('difficulty').value,inputMode:guest.im||deps.game.inputMode});for(const p of deps.game.players)p.name=msg.players[p.id-1]?.name||defaultName(p.id);};
+     let runOpts={}; // difficulty/inputMode announced by the host's start msg
+     guest.onStart=msg=>{runOpts={difficulty:msg.difficulty,inputMode:msg.inputMode};begin(msg.stage??0,msg.n,msg.players,runOpts);};
+     guest.onStage=msg=>{deps.start(msg.stage,{playerCount:msg.n,online:true,...runOpts});for(const p of deps.game.players)p.name=msg.players[p.id-1]?.name||defaultName(p.id);};
      // Mid-stage joiners never see 'start' — dismiss the lobby on first snapshot.
-     const push=guest.pushSnap.bind(guest);guest.pushSnap=s=>{push(s);hide();};
+     guest.onSnap=hide;
+     guest.onHostGone=()=>setStatus(t('netHostLeft'));
      guest.join('',p2box.checked?2:1);
      status.textContent=t('netWaiting');setStatus('ONLINE');
     },
