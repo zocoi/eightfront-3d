@@ -82,6 +82,7 @@ class NetGuest{
   this.g=game;this.t=transport;this.onSound=onSound;this.onLobby=onLobby;
   this.isHost=false;this.isGuest=true;this.closed=false;
   this.slots=[];this.spec=false;this.snaps=[];this.lastSerial=0;this.seq=0;
+  this.pred=[];this.predSnd=[];this.predId=0;
   this.you=null;this.lobbyList=[];
   transport.onmessage((id,msg)=>this.onMsg(msg));
   transport.onclose?.(id=>{if(id==='host')this.hostGone=true;});
@@ -158,19 +159,59 @@ class NetGuest{
   }
   g.enemies=g.enemies.filter(e=>seen.has(e.id));
   g.bullets=next.bl.map(a=>{const b=decodeBullet(a);const po=prev?.bl.find(q=>q[0]===b.id);if(po&&alpha<1){b.x=po[1]+(b.x-po[1])*alpha;b.y=po[2]+(b.y-po[2])*alpha;b.z=po[3]+(b.z-po[3])*alpha;}b.hitIds=new Set();return b;});
+  // Predicted own-shot tracers fly on a short TTL; the authoritative bullet
+  // replaces them inside the round-trip window, so no dedup is needed.
+  this.pred=this.pred.filter(b=>(b.life-=dt)>0);
+  for(const b of this.pred){b.age+=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;}
+  if(this.pred.length)g.bullets.push(...this.pred);
   // FX + sound replay — drain every buffered snap so skipped frames never drop events.
   for(const snap of this.snaps)for(const e of decodeEvents(snap.ev||[]))if(e.seed>this.lastSerial){this.lastSerial=e.seed;e.born=g.t;spawnEventFx(g,e);}
-  for(const s of next.snd||[])this.onSound(s);
+  this.predSnd=this.predSnd.filter(q=>g.t-q.t<.6);
+  for(const s of next.snd||[]){
+   // Predicted shots played their sound at fire time; swallow the echo.
+   const i=this.predSnd.findIndex(q=>q.k===s);if(i>=0){this.predSnd.splice(i,1);continue;}
+   this.onSound(s);
+  }
   // Prediction: run the shared locomotion step on owned slots at render dt.
+  // Aim, firing pose, muzzle/recoil and shot tracers are predicted locally too —
+  // anything the guest sees on their own character should not wait a round-trip.
   for(const s of this.slots){
    const p=g.players[s];if(!p||p.dead)continue;
    const c=localCtrls[s]||{};
    g.stepLocomotion(p,c,dt,true);
+   p.aimDirection=g.direction(c,p);
+   p.shooting=!!(c.fire||c.firePressed);
+   p.muzzle=Math.max(0,(p.muzzle||0)-dt);p.recoil=(p.recoil||0)*Math.exp(-dt*30);
+   p.predCD=Math.max(0,(p.predCD||0)-dt);
+   const retro=g.inputMode==='retro',semi=retro&&['R','S','F'].includes(p.weapon);
+   const edge=c.firePressed||(c.fire&&!p.predFire);p.predFire=!!c.fire;
+   if((semi?edge:!!(c.fire||edge))&&p.predCD<=0)this.predictShot(p,c);
    // Gentle reconcile toward the latest authoritative pose.
    const a=next.pl.find(q=>q[0]===s+1);
    if(a){const err=Math.hypot(p.x-a[1],p.y-a[2]);if(err>1.6){p.x=a[1];p.y=a[2];p.vx=a[4];p.vy=a[5];}else if(err>.02){p.x+=(a[1]-p.x)*.2;p.y+=(a[2]-p.y)*.2;}}
   }
   stepParticles(g,dt); // g.t follows snapshots; particles age locally.
+ }
+ // Cosmetic replica of shoot()'s spawn math (game.js). Tracers are visual only —
+ // they carry a short TTL and never hit anything; the real bullet still comes
+ // from the host's snapshot. Negative ids keep them distinct from wire ids.
+ predictShot(p,c){
+  const g=this.g,dep=g.stage.mode==='depth',retro=g.inputMode==='retro';
+  const base=WEAPONS[p.weapon];if(!base)return;
+  const w=retro?{...base,speed:{R:30,M:36,S:30,L:48,F:24}[p.weapon],interval:p.weapon==='M'?8/60:base.interval,life:1.45}
+   :dep&&p.weapon==='F'?{...base,speed:32,life:.70}
+   :dep?{...base,speed:base.speed*1.4}:base;
+  const d=g.direction(c,p);p.aimDirection=d;
+  p.predCD=w.interval;p.muzzle=p.weapon==='M'?.040:p.weapon==='L'?.045:.060;p.recoil=p.weapon==='S'?.085:p.weapon==='M'?.035:p.weapon==='F'?.018:.055;
+  const owner=p.id||1,offsets=p.weapon==='S'?[-.25,-.125,0,.125,.25]:[!retro&&p.weapon==='F'?(Math.random()-.5)*.18:0];
+  for(const a of offsets){
+   let v;
+   if(dep){const yaw=Math.atan2(d[0],-d[2])+a,pitch=Math.asin(clamp(d[1],-1,1));v=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)];}
+   else{const angle=Math.atan2(d[1],d[0])+a;v=[Math.cos(angle),Math.sin(angle),0];}
+   const [x,y,z]=g.muzzlePoint(p,d);
+   this.pred.push({id:--this.predId,x,y,z,vx:v[0]*w.speed,vy:v[1]*w.speed,vz:v[2]*w.speed,r:p.weapon==='F'?.16:.075,type:p.weapon,pierce:p.weapon==='L',color:w.color,tint:g.playerCount>1&&p.weapon==='R'?squadIdentity(owner).tracer:undefined,enemy:false,retro,age:0,life:.28,delay:0,normal:dep?[1,0,0]:[-v[1],v[0],0]});
+  }
+  this.predSnd.push({k:p.weapon,t:g.t});this.onSound(p.weapon);
  }
  sendInputs(localCtrls){
   const packs={};
