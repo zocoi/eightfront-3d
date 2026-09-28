@@ -88,5 +88,31 @@ ok('10 authored identities',SQUAD.length===10&&SQUAD_MAX===10);
 ok('callsigns unique',new Set(SQUAD.map(s=>s.call)).size===10);
 ok('accents unique',new Set(SQUAD.map(s=>s.accent)).size===10);
 
+// PeerTransport regression: a guest's send('host',...) must reach the data
+// connection — an earlier onReady fix dropped the conns.set('host',c)
+// registration and joins went into the void. Stub Peer just enough to drive
+// the constructor's event wiring.
+console.log('netcheck: PeerTransport guest send');
+{
+ class FakeConn{constructor(){this.h={};this.open=false;this.sent=[];}
+  on(k,f){this.h[k]=f;}send(m){this.sent.push(m);}close(){}}
+ class FakePeer{constructor(){this.h={};this.conns=[];}
+  on(k,f){this.h[k]=f;}connect(){const c=new FakeConn();this.conns.push(c);return c;}
+  reconnect(){}destroy(){}}
+ const{PeerTransport}=new Function('Peer','location',
+  src('net-transport.js')+';return{PeerTransport};')(FakePeer,{search:'',protocol:'https:'});
+ let ready=false,err=null;
+ const tp=new PeerTransport('ABCDE',false,{onReady:()=>ready=true,onError:e=>err=e});
+ tp.peer.h.open('g-1');
+ const conn=tp.peer.conns[0];
+ ok('guest opens data channel',!!conn);
+ conn.open=true; // real PeerJS flips DataConnection.open before firing 'open'
+ conn.h.open();
+ ok('ready fires on channel open',ready&&!err);
+ tp.send('host',{k:'hi',v:1,name:'VIPER',local:1});
+ ok('hi reaches host conn',conn.sent.length===1&&conn.sent[0].k==='hi',JSON.stringify(conn.sent));
+ tp.close();
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail?1:0);
